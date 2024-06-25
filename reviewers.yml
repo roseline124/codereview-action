@@ -1,0 +1,10 @@
+reviewers:
+  - githubName: a
+    slackId: b
+    name: 홍길동
+  - githubName: c
+    slackId: d
+    name: 이몽룡
+  - githubName: e
+    slackId: f
+    name: 성춘향

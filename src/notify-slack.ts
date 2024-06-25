@@ -1,31 +1,12 @@
-import { Octokit } from "@octokit/rest";
+import * as core from "@actions/core";
+import * as github from "@actions/github";
 import fetch from "node-fetch";
 import yaml from "js-yaml";
+import { promises as fs } from "fs";
 
 const githubToken = process.env.GITHUB_TOKEN as string;
 const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL as string;
-const reviewersYaml = process.env.REVIEWERS as string;
-
-const octokit = new Octokit({
-  auth: githubToken,
-});
-
-interface GitHubEvent {
-  action: string;
-  pull_request?: {
-    user: { login: string };
-    requested_reviewers: { login: string }[];
-    html_url: string;
-  };
-  comment?: {
-    user: { login: string };
-    body: string;
-    html_url: string;
-  };
-  repository: {
-    full_name: string;
-  };
-}
+const reviewersFilePath = process.env.REVIEWERS_FILE as string;
 
 interface Reviewer {
   githubName: string;
@@ -34,48 +15,75 @@ interface Reviewer {
 }
 
 interface Reviewers {
-  reviewers: { [key: string]: Reviewer }[];
+  reviewers: Reviewer[];
 }
 
+const debug = (json: Record<string, any>) => {
+  core.debug(JSON.stringify(json, null, 2));
+};
 async function notifySlack() {
-  const event: GitHubEvent = require(process.env.GITHUB_EVENT_PATH as string);
-  const { action, pull_request, comment } = event;
+  try {
+    core.info("Starting notifySlack function");
 
-  const reviewers: Reviewers = yaml.load(reviewersYaml) as Reviewers;
+    const reviewersYaml = await fs.readFile(reviewersFilePath, "utf8");
+    const reviewers: Reviewers = yaml.load(reviewersYaml) as Reviewers;
+    core.info("Reviewers loaded:");
+    debug(reviewers);
 
-  let message = "";
+    const event = github.context.payload;
+    core.info("Event loaded:");
+    debug(event);
+    const { action, pull_request, comment } = event;
 
-  if ((action === "opened" || action === "review_requested") && pull_request) {
-    const prAuthor = pull_request.user.login;
-    const requestedReviewers = pull_request.requested_reviewers
-      .map((r) => {
-        const reviewer = Object.values(reviewers.reviewers).find(
-          (rev) => rev.githubName === r.login
-        );
-        return reviewer ? reviewer.slackId : r.login;
-      })
-      .join(", ");
+    let message = "";
 
-    const prLink = pull_request.html_url;
-    message = `${prAuthor}님이 ${requestedReviewers}님께 리뷰 요청을 보냈어요. PR 링크: ${prLink}`;
-  } else if (action === "created" && comment) {
-    const commentAuthor = comment.user.login;
-    const commentBody = comment.body;
-    const prLink = comment.html_url;
+    if (action === "review_requested" && pull_request) {
+      const prAuthor = pull_request.user.login;
+      core.info(`Pull request author: ${prAuthor}`);
+      core.debug("Requested reviewers:");
+      debug(pull_request.requested_reviewers);
+      const requestedReviewers = pull_request.requested_reviewers
+        .map((r: any) => {
+          const reviewer = reviewers.reviewers.find(
+            (rev) => rev.githubName === r.login
+          );
+          return reviewer ? reviewer.slackId : r.login;
+        })
+        .join(", ");
 
-    message = `@${commentAuthor}: "${commentBody}"\n댓글 링크: ${prLink}`;
-  }
+      const prLink = pull_request.html_url;
+      message = `${prAuthor}님이 ${requestedReviewers}님께 리뷰 요청을 보냈어요. PR 링크: ${prLink}`;
+      core.info("Message constructed:");
+      core.debug(message);
+    } else if (action === "created" && comment) {
+      const commentAuthor = comment.user.login;
+      const commentBody = comment.body;
+      const prLink = comment.html_url;
 
-  if (message) {
-    await fetch(slackWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: message }),
-    });
+      message = `@${commentAuthor}: "${commentBody}"\n댓글 링크: ${prLink}`;
+      core.info("Message constructed:");
+      core.debug(message);
+    }
+
+    if (message) {
+      core.info("Sending message to Slack:");
+      core.debug(message);
+      await fetch(slackWebhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: message }),
+      });
+      core.info("Message sent to Slack");
+    }
+  } catch (error: any) {
+    core.error("Error in notifySlack function:");
+    core.error(error.message);
+    process.exit(1);
   }
 }
 
 notifySlack().catch((error) => {
-  console.error(error);
+  core.error("Error caught in notifySlack:");
+  core.error(error.message);
   process.exit(1);
 });

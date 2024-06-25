@@ -27,8 +27,7 @@ jobs:
 
       - name: Read reviewers from YAML
         id: read_reviewers
-        run: |
-          echo "reviewers=$(cat reviewers.yml)" >> $GITHUB_ENV
+        run: echo "REVIEWERS_FILE=reviewers.yml" >> $GITHUB_ENV
 
       - name: Notify Slack
         run: pnpm notify-slack
@@ -36,3 +35,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           REVIEWERS: ${{ env.reviewers }}
+          REVIEWERS_FILE: ${{ env.REVIEWERS_FILE }}
+          ACTIONS_STEP_DEBUG: true

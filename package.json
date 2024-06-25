@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
-    "notify-slack": "pnpm ts-node notify-slack.ts"
+    "notify-slack": "node --loader ts-node/esm src/notify-slack.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,8 @@
     "typescript": "^5.5.2"
   },
   "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
     "@octokit/rest": "^21.0.0",
     "js-yaml": "^4.1.0",
     "node-fetch": "^3.3.2"
