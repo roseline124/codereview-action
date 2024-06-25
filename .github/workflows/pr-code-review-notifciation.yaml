@@ -1,0 +1,38 @@
+name: PR Slack Notification
+
+on:
+  pull_request:
+    types: [review_requested]
+  issue_comment:
+    types: [created]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Read reviewers from YAML
+        id: read_reviewers
+        run: |
+          echo "reviewers=$(cat reviewers.yml)" >> $GITHUB_ENV
+
+      - name: Notify Slack
+        run: pnpm notify-slack
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REVIEWERS: ${{ env.reviewers }}
