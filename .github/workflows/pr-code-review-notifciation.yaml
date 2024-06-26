@@ -30,12 +30,9 @@ jobs:
         run: echo "REVIEWERS_FILE=reviewers.yml" >> $GITHUB_ENV
 
       - name: Notify Slack
-        run: |
-          pnpm build
-          pnpm notify-slack
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL:
-          SLACK_WORKSPACE:
-          REVIEWERS_FILE: ${{ env.REVIEWERS_FILE }}
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          slack_token: ${{ secrets.SLACK_TOKEN }}
+          slack_channel:
+          slack_workspace:
