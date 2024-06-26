@@ -40374,18 +40374,42 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 4945:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.findSlackTsInComments = findSlackTsInComments;
+const core = __importStar(__nccwpck_require__(9093));
 const github_1 = __nccwpck_require__(5942);
 const utils_1 = __nccwpck_require__(442);
+const githubToken = core.getInput("github_token");
 async function findSlackTsInComments(prNumber, owner, repo) {
-    const githubToken = process.env.GITHUB_TOKEN;
     const octokit = (0, github_1.getOctokit)(githubToken);
-    const comments = await octokit.issues.listComments({
+    const comments = await octokit.rest.issues.listComments({
         owner,
         repo,
         issue_number: prNumber,
@@ -40517,6 +40541,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handlePRMerge = handlePRMerge;
+const core = __importStar(__nccwpck_require__(9093));
 const github = __importStar(__nccwpck_require__(5942));
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const slack_1 = __nccwpck_require__(6134);
@@ -40530,7 +40555,8 @@ async function handlePRMerge(event) {
     (0, utils_1.debug)({ ts });
     if (!ts)
         return;
-    await (0, slack_1.addReaction)(ts, process.env.SLACK_MERGE_EMOJI_NAME ?? "white_check_mark");
+    const slackMergeEmojiName = core.getInput("slack_merge_emoji_name");
+    await (0, slack_1.addReaction)(ts, slackMergeEmojiName);
 }
 
 
@@ -40566,14 +40592,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handlePROpen = handlePROpen;
+const core = __importStar(__nccwpck_require__(9093));
 const github = __importStar(__nccwpck_require__(5942));
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
 const get_reviewer_slack_id_1 = __nccwpck_require__(5226);
 const github_1 = __nccwpck_require__(5942);
+const githubToken = core.getInput("github_token");
+const slackChannel = core.getInput("slack_channel");
+const slackWorkspace = core.getInput("slack_workspace");
 async function handlePROpen(event, reviewers) {
-    const slackChannel = process.env.SLACK_CHANNEL;
-    const slackWorkspace = process.env.SLACK_WORKSPACE;
     const { pull_request } = event;
     if (!pull_request)
         return;
@@ -40586,9 +40614,8 @@ async function handlePROpen(event, reviewers) {
     (0, utils_1.debug)({ ts, owner, repo, prNumber });
     // PR에 슬랙 메시지 ts 저장
     const slackMessageComment = `코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기](https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(".", "")})\n<!-- (ts${ts}) -->`;
-    const githubToken = process.env.GITHUB_TOKEN;
     const octokit = (0, github_1.getOctokit)(githubToken);
-    await (0, slack_1.addCommentToPR)(octokit, prNumber, owner, repo, slackMessageComment);
+    await (0, slack_1.addCommentToPR)(octokit.rest, prNumber, owner, repo, slackMessageComment);
 }
 function buildSlackBlock(reviewers, pullRequest) {
     // PR 변수 셋업
@@ -40735,13 +40762,12 @@ const utils_1 = __nccwpck_require__(442);
 const handle_create_comment_1 = __nccwpck_require__(1036);
 const slack_1 = __nccwpck_require__(6134);
 const handle_pr_merge_1 = __nccwpck_require__(1235);
-const githubToken = process.env.GITHUB_TOKEN;
-const slackToken = process.env.SLACK_TOKEN;
-const slackChannel = process.env.SLACK_CHANNEL;
-const reviewersFilePath = process.env.REVIEWERS_FILE;
+const githubToken = core.getInput("github_token");
+const slackToken = core.getInput("slack_token");
+const slackChannel = core.getInput("slack_channel");
+const reviewersFilePath = core.getInput("reviewers_file");
 async function notifySlack() {
     try {
-        (0, utils_1.debug)({ githubToken, slackToken, slackChannel, reviewersFilePath });
         core.info("Starting notifySlack function");
         const reviewersYaml = await fs_1.promises.readFile(reviewersFilePath, "utf8");
         const reviewers = js_yaml_1.default.load(reviewersYaml);
@@ -40795,10 +40821,33 @@ notifySlack().catch((error) => {
 /***/ }),
 
 /***/ 6134:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.slackClient = void 0;
 exports.getSlackMessage = getSlackMessage;
@@ -40807,9 +40856,10 @@ exports.updateMessage = updateMessage;
 exports.postThreadMessage = postThreadMessage;
 exports.addReaction = addReaction;
 exports.addCommentToPR = addCommentToPR;
+const core = __importStar(__nccwpck_require__(9093));
 const web_api_1 = __nccwpck_require__(1186);
-const slackToken = process.env.SLACK_TOKEN;
-const slackChannel = process.env.SLACK_CHANNEL;
+const slackToken = core.getInput("slack_token");
+const slackChannel = core.getInput("slack_channel");
 exports.slackClient = new web_api_1.WebClient(slackToken);
 async function getSlackMessage(ts) {
     const result = await exports.slackClient.conversations.history({
