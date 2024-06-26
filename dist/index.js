@@ -40373,7 +40373,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 4945:
+/***/ 8469:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -40402,13 +40402,28 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.findSlackTsInComments = findSlackTsInComments;
+exports.getOctokit = getOctokit;
 const core = __importStar(__nccwpck_require__(9093));
-const github_1 = __nccwpck_require__(5942);
-const utils_1 = __nccwpck_require__(442);
 const githubToken = core.getInput("github_token");
+async function getOctokit() {
+    const { Octokit } = await __nccwpck_require__.e(/* import() */ 861).then(__nccwpck_require__.bind(__nccwpck_require__, 2861));
+    return new Octokit({ auth: githubToken });
+}
+
+
+/***/ }),
+
+/***/ 4945:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.findSlackTsInComments = findSlackTsInComments;
+const utils_1 = __nccwpck_require__(442);
+const github_1 = __nccwpck_require__(8469);
 async function findSlackTsInComments(prNumber, owner, repo) {
-    const octokit = (0, github_1.getOctokit)(githubToken);
+    const octokit = await (0, github_1.getOctokit)();
     const comments = await octokit.rest.issues.listComments({
         owner,
         repo,
@@ -40489,11 +40504,12 @@ const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
  * @TODO 코드리뷰로 한꺼번에 제출해도 코멘트 달리는지 확인
  */
 async function handleCreateComment(event, reviewers) {
-    const { comment, issue } = event;
+    const { comment, pull_request, issue } = event;
     const commentAuthorGithubName = comment.user.login;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
-    const prNumber = issue.pull_request.number;
+    const prNumber = pull_request.number;
+    core.info(`comment number: ${comment.id}, issue number: ${issue?.number}, pr number: ${pull_request.number}`);
     // GitHub Actions의 GITHUB_TOKEN으로 작성된 코멘트 제외
     if (commentAuthorGithubName === "github-actions[bot]") {
         core.info("Skipping comment created by GitHub Actions bot.");
@@ -40599,8 +40615,7 @@ const github = __importStar(__nccwpck_require__(5942));
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
 const get_reviewer_slack_id_1 = __nccwpck_require__(5226);
-const github_1 = __nccwpck_require__(5942);
-const githubToken = core.getInput("github_token");
+const github_1 = __nccwpck_require__(8469);
 const slackChannel = core.getInput("slack_channel");
 const slackWorkspace = core.getInput("slack_workspace");
 async function handlePROpen(event, reviewers) {
@@ -40616,7 +40631,7 @@ async function handlePROpen(event, reviewers) {
     (0, utils_1.debug)({ ts, owner, repo, prNumber });
     // PR에 슬랙 메시지 ts 저장
     const slackMessageComment = `코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기](https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(".", "")})\n<!-- (ts${ts}) -->`;
-    const octokit = (0, github_1.getOctokit)(githubToken);
+    const octokit = await (0, github_1.getOctokit)();
     await (0, slack_1.addCommentToPR)(octokit.rest, prNumber, owner, repo, slackMessageComment);
 }
 function buildSlackBlock(reviewers, pullRequest) {
@@ -40774,8 +40789,6 @@ const utils_1 = __nccwpck_require__(442);
 const handle_create_comment_1 = __nccwpck_require__(1036);
 const slack_1 = __nccwpck_require__(6134);
 const handle_pr_merge_1 = __nccwpck_require__(1235);
-const githubToken = core.getInput("github_token");
-const slackToken = core.getInput("slack_token");
 const slackChannel = core.getInput("slack_channel");
 const reviewersFilePath = core.getInput("reviewers_file");
 async function notifySlack() {
@@ -47582,10 +47595,105 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__nccwpck_require__.m = __webpack_modules__;
+/******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/ensure chunk */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.f = {};
+/******/ 		// This file contains only the entry chunk.
+/******/ 		// The chunk loading function for additional chunks
+/******/ 		__nccwpck_require__.e = (chunkId) => {
+/******/ 			return Promise.all(Object.keys(__nccwpck_require__.f).reduce((promises, key) => {
+/******/ 				__nccwpck_require__.f[key](chunkId, promises);
+/******/ 				return promises;
+/******/ 			}, []));
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/get javascript chunk filename */
+/******/ 	(() => {
+/******/ 		// This function allow to reference async chunks
+/******/ 		__nccwpck_require__.u = (chunkId) => {
+/******/ 			// return url for filenames based on template
+/******/ 			return "" + chunkId + ".index.js";
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
+/******/ 	
+/******/ 	/* webpack/runtime/require chunk loading */
+/******/ 	(() => {
+/******/ 		// no baseURI
+/******/ 		
+/******/ 		// object to store loaded chunks
+/******/ 		// "1" means "loaded", otherwise not loaded yet
+/******/ 		var installedChunks = {
+/******/ 			179: 1
+/******/ 		};
+/******/ 		
+/******/ 		// no on chunks loaded
+/******/ 		
+/******/ 		var installChunk = (chunk) => {
+/******/ 			var moreModules = chunk.modules, chunkIds = chunk.ids, runtime = chunk.runtime;
+/******/ 			for(var moduleId in moreModules) {
+/******/ 				if(__nccwpck_require__.o(moreModules, moduleId)) {
+/******/ 					__nccwpck_require__.m[moduleId] = moreModules[moduleId];
+/******/ 				}
+/******/ 			}
+/******/ 			if(runtime) runtime(__nccwpck_require__);
+/******/ 			for(var i = 0; i < chunkIds.length; i++)
+/******/ 				installedChunks[chunkIds[i]] = 1;
+/******/ 		
+/******/ 		};
+/******/ 		
+/******/ 		// require() chunk loading for javascript
+/******/ 		__nccwpck_require__.f.require = (chunkId, promises) => {
+/******/ 			// "1" is the signal for "already loaded"
+/******/ 			if(!installedChunks[chunkId]) {
+/******/ 				if(true) { // all chunks have JS
+/******/ 					installChunk(require("./" + __nccwpck_require__.u(chunkId)));
+/******/ 				} else installedChunks[chunkId] = 1;
+/******/ 			}
+/******/ 		};
+/******/ 		
+/******/ 		// no external install chunk
+/******/ 		
+/******/ 		// no HMR
+/******/ 		
+/******/ 		// no HMR manifest
+/******/ 	})();
 /******/ 	
 /************************************************************************/
 /******/ 	

@@ -1,15 +1,12 @@
-import * as core from "@actions/core";
-import { getOctokit } from "@actions/github";
 import { debug } from "../../utils";
-
-const githubToken: string = core.getInput("github_token");
+import { getOctokit } from "../../github";
 
 export async function findSlackTsInComments(
   prNumber: number,
   owner: string,
   repo: string
 ): Promise<string | null> {
-  const octokit = getOctokit(githubToken);
+  const octokit = await getOctokit();
   const comments = await octokit.rest.issues.listComments({
     owner,
     repo,

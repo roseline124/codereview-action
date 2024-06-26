@@ -6,9 +6,8 @@ import { addCommentToPR, postMessage } from "../slack";
 import { Reviewers } from "../types";
 import { debug } from "../utils";
 import { getReviewerSlackId } from "./common/get-reviewer-slack-id";
-import { getOctokit } from "@actions/github";
+import { getOctokit } from "../github";
 
-const githubToken: string = core.getInput("github_token");
 const slackChannel: string = core.getInput("slack_channel");
 const slackWorkspace: string = core.getInput("slack_workspace");
 
@@ -34,7 +33,7 @@ export async function handlePROpen(
     ".",
     ""
   )})\n<!-- (ts${ts}) -->`;
-  const octokit = getOctokit(githubToken);
+  const octokit = await getOctokit();
   await addCommentToPR(
     octokit.rest,
     prNumber,
