@@ -11,6 +11,9 @@ export async function handlePRMerge(event: any) {
   const prNumber = pull_request.number;
 
   const ts = await findSlackTsInComments(prNumber, owner, repo);
+
+  core.info(`ts: ${ts}`);
+  core.info(JSON.stringify({ owner, repo, prNumber }));
   debug({ ts });
   if (!ts) return;
 

@@ -40504,12 +40504,11 @@ const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
  * @TODO 코드리뷰로 한꺼번에 제출해도 코멘트 달리는지 확인
  */
 async function handleCreateComment(event, reviewers) {
-    const { comment, pull_request, issue } = event;
+    const { comment, issue } = event;
     const commentAuthorGithubName = comment.user.login;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
-    core.info(`comment number: ${comment.id}, issue number: ${issue?.number}, pr number: ${pull_request?.number}`);
-    const prNumber = pull_request.number;
+    const prNumber = issue.number;
     // GitHub Actions의 GITHUB_TOKEN으로 작성된 코멘트 제외
     if (commentAuthorGithubName === "github-actions[bot]") {
         core.info("Skipping comment created by GitHub Actions bot.");
@@ -40570,6 +40569,8 @@ async function handlePRMerge(event) {
     const repo = github.context.repo.repo;
     const prNumber = pull_request.number;
     const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
+    core.info(`ts: ${ts}`);
+    core.info(JSON.stringify({ owner, repo, prNumber }));
     (0, utils_1.debug)({ ts });
     if (!ts)
         return;
