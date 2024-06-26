@@ -65,6 +65,11 @@ export async function handleReviewSubmitted(
       commentAuthor?.name ?? review.user.login,
       ":pray: 재수정 부탁드려요!\n" + review.body
     );
+  } else {
+    lastMessage = generateComment(
+      commentAuthor?.name ?? review.user.login,
+      review.body
+    );
   }
 
   await postThreadMessage(ts, lastMessage);

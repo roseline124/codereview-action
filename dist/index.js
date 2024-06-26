@@ -40941,6 +40941,9 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
     else if (review.state === "changes_requested") {
         lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, ":pray: 재수정 부탁드려요!\n" + review.body);
     }
+    else {
+        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, review.body);
+    }
     await (0, slack_1.postThreadMessage)(ts, lastMessage);
 }
 async function listReviewComments(octokit, owner, repo, prNumber) {
