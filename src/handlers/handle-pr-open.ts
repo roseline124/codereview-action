@@ -7,6 +7,7 @@ import { Reviewers } from "../types";
 import { debug } from "../utils";
 import { getReviewerSlackId } from "./common/get-reviewer-slack-id";
 import { getOctokit } from "../github";
+import { SKIP_COMMENT_MARKER } from "../constants";
 
 const slackChannel: string = core.getInput("slack_channel");
 const slackWorkspace: string = core.getInput("slack_workspace");
@@ -32,7 +33,7 @@ export async function handlePROpen(
   const slackMessageComment = `코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기](https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(
     ".",
     ""
-  )})\n<!-- (ts${ts}) -->`;
+  )})\n<!-- (ts${ts}) ${SKIP_COMMENT_MARKER} -->`;
   const octokit = await getOctokit();
   await addCommentToPR(
     octokit.rest,

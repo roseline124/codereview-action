@@ -22,7 +22,7 @@ async function notifySlack() {
     debug(reviewers);
 
     const event = github.context.payload;
-    core.info("Event loaded:");
+    core.info(`Event loaded: ${JSON.stringify(event)}`);
     debug(event);
     const { action, pull_request, comment, review } = event;
 

@@ -40373,6 +40373,18 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 8926:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SKIP_COMMENT_MARKER = void 0;
+exports.SKIP_COMMENT_MARKER = "ImbotuOV2bmx5sv";
+
+
+/***/ }),
+
 /***/ 8469:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -40422,6 +40434,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.findSlackTsInComments = findSlackTsInComments;
 const utils_1 = __nccwpck_require__(442);
 const github_1 = __nccwpck_require__(8469);
+const constants_1 = __nccwpck_require__(8926);
 async function findSlackTsInComments(prNumber, owner, repo) {
     const octokit = await (0, github_1.getOctokit)();
     const comments = await octokit.rest.issues.listComments({
@@ -40431,6 +40444,8 @@ async function findSlackTsInComments(prNumber, owner, repo) {
     });
     for (const comment of comments.data) {
         if (!comment.body)
+            continue;
+        if (comment.body.includes(constants_1.SKIP_COMMENT_MARKER))
             continue;
         (0, utils_1.debug)({ body: comment.body });
         const match = comment.body.match(/ts(\d+\.\d+)/);
@@ -40452,7 +40467,7 @@ async function findSlackTsInComments(prNumber, owner, repo) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateComment = generateComment;
 function generateComment(authorName, comment) {
-    return `💬 ${authorName}: "${comment}"`;
+    return `💬 ${authorName}: ${comment}`;
 }
 
 
@@ -40629,6 +40644,7 @@ const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
 const get_reviewer_slack_id_1 = __nccwpck_require__(5226);
 const github_1 = __nccwpck_require__(8469);
+const constants_1 = __nccwpck_require__(8926);
 const slackChannel = core.getInput("slack_channel");
 const slackWorkspace = core.getInput("slack_workspace");
 async function handlePROpen(event, reviewers) {
@@ -40643,7 +40659,7 @@ async function handlePROpen(event, reviewers) {
     const ts = await (0, slack_1.postMessage)(blocks);
     (0, utils_1.debug)({ ts, owner, repo, prNumber });
     // PR에 슬랙 메시지 ts 저장
-    const slackMessageComment = `코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기](https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(".", "")})\n<!-- (ts${ts}) -->`;
+    const slackMessageComment = `코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기](https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(".", "")})\n<!-- (ts${ts}) ${constants_1.SKIP_COMMENT_MARKER} -->`;
     const octokit = await (0, github_1.getOctokit)();
     await (0, slack_1.addCommentToPR)(octokit.rest, prNumber, owner, repo, slackMessageComment);
 }
@@ -40863,7 +40879,7 @@ async function notifySlack() {
         const reviewers = js_yaml_1.default.load(reviewersYaml);
         (0, utils_1.debug)(reviewers);
         const event = github.context.payload;
-        core.info("Event loaded:");
+        core.info(`Event loaded: ${JSON.stringify(event)}`);
         (0, utils_1.debug)(event);
         const { action, pull_request, comment, review } = event;
         let message = "";
