@@ -40458,7 +40458,6 @@ exports.findSlackTsInComments = findSlackTsInComments;
 const core = __importStar(__nccwpck_require__(9093));
 const utils_1 = __nccwpck_require__(442);
 const github_1 = __nccwpck_require__(8469);
-const constants_1 = __nccwpck_require__(8926);
 async function findSlackTsInComments(prNumber, owner, repo) {
     const octokit = await (0, github_1.getOctokit)();
     const comments = await octokit.rest.issues.listComments({
@@ -40470,9 +40469,6 @@ async function findSlackTsInComments(prNumber, owner, repo) {
         if (!comment.body)
             continue;
         core.info(`comment.body: ${comment.body}`);
-        core.info(`SKIP_COMMENT_MARKER: ${constants_1.SKIP_COMMENT_MARKER}`);
-        if (comment.body.includes(constants_1.SKIP_COMMENT_MARKER))
-            continue;
         (0, utils_1.debug)({ body: comment.body });
         const match = comment.body.match(/ts(\d+\.\d+)/);
         if (match) {
@@ -40558,13 +40554,15 @@ const core = __importStar(__nccwpck_require__(9093));
 const slack_1 = __nccwpck_require__(6134);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const generate_comment_1 = __nccwpck_require__(2228);
+const constants_1 = __nccwpck_require__(8926);
 async function handleCreateComment(event, reviewers) {
     const { comment, issue } = event;
     const commentAuthorGithubName = comment.user.login;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
     const prNumber = issue.number;
-    // Find the existing Slack ts from comments
+    if (comment.body.includes(constants_1.SKIP_COMMENT_MARKER))
+        return;
     const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
     if (!ts)
         return;

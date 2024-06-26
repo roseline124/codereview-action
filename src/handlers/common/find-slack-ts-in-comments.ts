@@ -1,7 +1,6 @@
 import * as core from "@actions/core";
 import { debug } from "../../utils";
 import { getOctokit } from "../../github";
-import { SKIP_COMMENT_MARKER } from "../../constants";
 
 export async function findSlackTsInComments(
   prNumber: number,
@@ -18,8 +17,6 @@ export async function findSlackTsInComments(
   for (const comment of comments.data) {
     if (!comment.body) continue;
     core.info(`comment.body: ${comment.body}`);
-    core.info(`SKIP_COMMENT_MARKER: ${SKIP_COMMENT_MARKER}`);
-    if (comment.body.includes(SKIP_COMMENT_MARKER)) continue;
     debug({ body: comment.body });
     const match = comment.body.match(/ts(\d+\.\d+)/);
     if (match) {

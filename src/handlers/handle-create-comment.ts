@@ -4,6 +4,7 @@ import { postThreadMessage } from "../slack";
 import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
 import { Reviewers } from "../types";
 import { generateComment } from "./common/generate-comment";
+import { SKIP_COMMENT_MARKER } from "../constants";
 
 export async function handleCreateComment(event: any, reviewers: Reviewers) {
   const { comment, issue } = event;
@@ -12,7 +13,7 @@ export async function handleCreateComment(event: any, reviewers: Reviewers) {
   const repo = github.context.repo.repo;
   const prNumber = issue.number;
 
-  // Find the existing Slack ts from comments
+  if (comment.body.includes(SKIP_COMMENT_MARKER)) return;
   const ts = await findSlackTsInComments(prNumber, owner, repo);
   if (!ts) return;
 
