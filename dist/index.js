@@ -40438,6 +40438,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getReviewerSlackId = getReviewerSlackId;
 function getReviewerSlackId(event, reviewers) {
     const { pull_request } = event;
+    if (!pull_request.requested_reviewers?.length)
+        return "";
     return pull_request.requested_reviewers
         .map((r) => {
         const reviewer = reviewers.reviewers.find((rev) => rev.githubName === r.login);
@@ -40631,12 +40633,15 @@ function buildSlackBlock(reviewers, pullRequest) {
         .join(", ");
     const prAuthorSlackId = reviewers.reviewers.find((rev) => rev.githubName === prAuthor)?.slackId;
     const requestedReviewers = (0, get_reviewer_slack_id_1.getReviewerSlackId)({ pull_request: pullRequest }, reviewers);
+    const requestMessage = requestedReviewers
+        ? `${requestedReviewers}님께 리뷰 요청을 보냈어요.`
+        : "리뷰 요청을 보냈어요.";
     const blocks = [
         {
             type: "section",
             text: {
                 type: "mrkdwn",
-                text: `*📮 ${`<@${prAuthorSlackId}>` || prAuthor}님이 ${requestedReviewers}님께 리뷰 요청을 보냈어요.*\n*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}\n`,
+                text: `*📮 ${`<@${prAuthorSlackId}>` || prAuthor}님이 ${requestMessage}*\n*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}\n`,
             },
         },
     ];
@@ -40705,12 +40710,19 @@ async function handleRequestReview(event, reviewers) {
     if (!textBlock?.text?.text)
         return;
     const existingReviewersMatch = textBlock.text.text.match(/님이.+님께/);
-    if (!existingReviewersMatch)
-        return;
-    const existingReviewers = existingReviewersMatch[0]
-        .replace(/님이|님께/g, "")
-        .trim();
-    textBlock.text.text = textBlock.text.text.replace(existingReviewersMatch[0], `님이 ${existingReviewers}, ${newReviewers}님께`);
+    // 처음에 리뷰어 지정 안한 경우
+    if (!existingReviewersMatch) {
+        const existingMessage = textBlock.text.text.match(/님이\s리뷰\s요청을/);
+        if (!existingMessage)
+            return;
+        textBlock.text.text = textBlock.text.text.replace(existingMessage[0], `님이 ${newReviewers}님께 리뷰 요청을`);
+    }
+    else {
+        const existingReviewers = existingReviewersMatch[0]
+            .replace(/님이|님께/g, "")
+            .trim();
+        textBlock.text.text = textBlock.text.text.replace(existingReviewersMatch[0], `님이 ${existingReviewers}, ${newReviewers}님께`);
+    }
     (0, utils_1.debug)({ slackTs, textBlock });
     const textBlockIndex = blocks.findIndex((block) => block.type === "section" && block.text?.type === "mrkdwn");
     blocks[textBlockIndex] = textBlock;

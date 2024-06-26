@@ -26,14 +26,24 @@ export async function handleRequestReview(event: any, reviewers: Reviewers) {
   if (!textBlock?.text?.text) return;
   const existingReviewersMatch = textBlock.text.text.match(/님이.+님께/);
 
-  if (!existingReviewersMatch) return;
-  const existingReviewers = existingReviewersMatch[0]
-    .replace(/님이|님께/g, "")
-    .trim();
-  textBlock.text.text = textBlock.text.text.replace(
-    existingReviewersMatch[0],
-    `님이 ${existingReviewers}, ${newReviewers}님께`
-  );
+  // 처음에 리뷰어 지정 안한 경우
+  if (!existingReviewersMatch) {
+    const existingMessage = textBlock.text.text.match(/님이\s리뷰\s요청을/);
+    if (!existingMessage) return;
+    textBlock.text.text = textBlock.text.text.replace(
+      existingMessage[0],
+      `님이 ${newReviewers}님께 리뷰 요청을`
+    );
+  } else {
+    const existingReviewers = existingReviewersMatch[0]
+      .replace(/님이|님께/g, "")
+      .trim();
+    textBlock.text.text = textBlock.text.text.replace(
+      existingReviewersMatch[0],
+      `님이 ${existingReviewers}, ${newReviewers}님께`
+    );
+  }
+
   debug({ slackTs, textBlock });
   const textBlockIndex = blocks.findIndex(
     (block: any) => block.type === "section" && block.text?.type === "mrkdwn"

@@ -69,6 +69,9 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
     reviewers
   );
 
+  const requestMessage = requestedReviewers
+    ? `${requestedReviewers}님께 리뷰 요청을 보냈어요.`
+    : "리뷰 요청을 보냈어요.";
   const blocks = [
     {
       type: "section",
@@ -76,7 +79,7 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
         type: "mrkdwn",
         text: `*📮 ${
           `<@${prAuthorSlackId}>` || prAuthor
-        }님이 ${requestedReviewers}님께 리뷰 요청을 보냈어요.*\n*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}\n`,
+        }님이 ${requestMessage}*\n*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}\n`,
       },
     },
   ];
