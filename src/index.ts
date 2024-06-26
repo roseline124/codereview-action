@@ -1,16 +1,15 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-import { WebClient } from "@slack/web-api";
 import { promises as fs } from "fs";
 import yaml from "js-yaml";
-import { handlePROpen } from "./handlers/handle-pr-open.ts";
-import { handleRequestReview } from "./handlers/handle-request-review.ts";
-import { Reviewers } from "./types.ts";
-import { debug } from "./utils.ts";
-import { handleCreateComment } from "./handlers/handle-create-comment.ts";
-import { slackClient } from "./slack.ts";
-import { handlePRMerge } from "./handlers/handle-pr-merge.ts";
+import { handlePROpen } from "./handlers/handle-pr-open";
+import { handleRequestReview } from "./handlers/handle-request-review";
+import { Reviewers } from "./types";
+import { debug } from "./utils";
+import { handleCreateComment } from "./handlers/handle-create-comment";
+import { slackClient } from "./slack";
+import { handlePRMerge } from "./handlers/handle-pr-merge";
 
 const githubToken = process.env.GITHUB_TOKEN as string;
 const slackToken = process.env.SLACK_TOKEN as string;
@@ -62,7 +61,7 @@ async function notifySlack() {
         text: message,
       });
 
-      response.ts;
+      response;
 
       core.info("Message sent to Slack");
       debug(response);

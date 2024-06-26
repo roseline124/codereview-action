@@ -15,8 +15,10 @@ inputs:
     description: "Slack Workspace Name"
     required: true
   reviewers_file:
-    description: "Path to the reviewers YAML file"
-    required: true
+    description: "Path to the reviewers YAML file. default: reviewers.yml on project root level."
+    required: false
+    default: "reviewers.yml"
+
 runs:
-  using: "node12"
-  main: "src/notify-slack.ts"
+  using: "node20"
+  main: "dist/index.js"

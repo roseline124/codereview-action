@@ -1,8 +1,8 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
-import { postThreadMessage } from "../slack.ts";
-import { findSlackTsInComments } from "./common/find-slack-ts-in-comments.ts";
-import { Reviewers } from "../types.ts";
+import { postThreadMessage } from "../slack";
+import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
+import { Reviewers } from "../types";
 
 /**
  * @TODO 코드리뷰로 한꺼번에 제출해도 코멘트 달리는지 확인

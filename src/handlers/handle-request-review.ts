@@ -1,9 +1,9 @@
 import * as github from "@actions/github";
-import { getSlackMessage, updateMessage } from "../slack.ts";
-import { Reviewers } from "../types.ts";
-import { debug } from "../utils.ts";
-import { findSlackTsInComments } from "./common/find-slack-ts-in-comments.ts";
-import { getReviewerSlackId } from "./common/get-reviewer-slack-id.ts";
+import { getSlackMessage, updateMessage } from "../slack";
+import { Reviewers } from "../types";
+import { debug } from "../utils";
+import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
+import { getReviewerSlackId } from "./common/get-reviewer-slack-id";
 
 export async function handleRequestReview(event: any, reviewers: Reviewers) {
   const { pull_request } = event;

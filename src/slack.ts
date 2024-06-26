@@ -1,4 +1,3 @@
-import { Octokit } from "@octokit/rest";
 import { WebClient } from "@slack/web-api";
 
 const slackToken = process.env.SLACK_TOKEN as string;
@@ -54,7 +53,7 @@ export async function addReaction(ts: string, emoji: string) {
 }
 
 export async function addCommentToPR(
-  octokit: Octokit,
+  octokit: any,
   prNumber: number,
   owner: string,
   repo: string,

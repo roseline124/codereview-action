@@ -1,11 +1,11 @@
 import * as github from "@actions/github";
 
 import { WebhookPayload } from "@actions/github/lib/interfaces.js";
-import { octokit } from "../github.ts";
-import { addCommentToPR, postMessage } from "../slack.ts";
-import { Reviewers } from "../types.ts";
-import { debug } from "../utils.ts";
-import { getReviewerSlackId } from "./common/get-reviewer-slack-id.ts";
+import { addCommentToPR, postMessage } from "../slack";
+import { Reviewers } from "../types";
+import { debug } from "../utils";
+import { getReviewerSlackId } from "./common/get-reviewer-slack-id";
+import { getOctokit } from "@actions/github";
 
 export async function handlePROpen(
   event: WebhookPayload,
@@ -31,7 +31,15 @@ export async function handlePROpen(
     ".",
     ""
   )})\n<!-- (ts${ts}) -->`;
-  await addCommentToPR(octokit, prNumber, owner, repo, slackMessageComment);
+  const githubToken = process.env.GITHUB_TOKEN as string;
+  const octokit = getOctokit(githubToken);
+  await addCommentToPR(
+    octokit.rest,
+    prNumber,
+    owner,
+    repo,
+    slackMessageComment
+  );
 }
 
 interface BuildSlackBlockParams {
