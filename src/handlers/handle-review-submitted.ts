@@ -16,7 +16,6 @@ export async function handleReviewSubmitted(
   const prNumber = pull_request.number;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
-
   const ts = await findSlackTsInComments(octokit, prNumber, owner, repo);
   if (!ts) return;
 
@@ -50,6 +49,25 @@ export async function handleReviewSubmitted(
 
     await postThreadMessage(ts, message);
   }
+
+  let lastMessage: string = "";
+  const commentAuthor = reviewers.reviewers.find(
+    (rev) => rev.githubName === review.user.login
+  );
+
+  if (review.state === "approved") {
+    lastMessage = generateComment(
+      commentAuthor?.name ?? review.user.login,
+      ":white_check_mark: LGTM\n" + review.body
+    );
+  } else if (review.state === "changes_requested") {
+    lastMessage = generateComment(
+      commentAuthor?.name ?? review.user.login,
+      ":pray: 재수정 부탁드려요!\n" + review.body
+    );
+  }
+
+  await postThreadMessage(ts, lastMessage);
 }
 
 export async function listReviewComments(
