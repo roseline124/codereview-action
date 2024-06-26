@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "notify-slack": "node --loader ts-node/esm src/notify-slack.ts -p tsconfig.build.json"
+    "notify-slack": "node --loader ts-node/esm src/notify-slack.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es2019",
-    "module": "commonjs",
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "lib": ["esnext"]
+    "outDir": "./dist"
   },
-  "exclude": ["node_modules"]
+  "include": ["src"]
 }

@@ -10,14 +10,5 @@
 
 3. event 지정
 
-- `act pull_request --eventpath event.json`
-
-4. 환경변수 지정
-
-```sh
-act pull_request --eventpath event.json \
-  -s GITHUB_TOKEN=your_github_token \
-  -s SLACK_TOKEN=your_slack_token \
-  -s SLACK_CHANNEL=your_slack_channel \
-  -s REVIEWERS_FILE=reviewers.yml
-```
+- pr open 이벤트: `act pull_request --eventpath event-open.json`
+- pr review request 이벤트: `act pull_request --eventpath event-review-request.json`
