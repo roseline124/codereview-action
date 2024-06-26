@@ -27,6 +27,9 @@ jobs:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel: slack channel id
           slack_workspace: slack workspace name
+          emergency_label_name: codered # default: emergency
+          slack_merge_emoji_name: check # default: white_check_mark
+          reviewers_file: reviewers.yml # default: reviewers.yml in project root level
         env:
           ACTIONS_STEP_DEBUG: true
 ```
