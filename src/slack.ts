@@ -1,7 +1,8 @@
+import * as core from "@actions/core";
 import { WebClient } from "@slack/web-api";
 
-const slackToken = process.env.SLACK_TOKEN as string;
-const slackChannel = process.env.SLACK_CHANNEL as string;
+const slackToken: string = core.getInput("slack_token");
+const slackChannel: string = core.getInput("slack_channel");
 
 export const slackClient = new WebClient(slackToken);
 

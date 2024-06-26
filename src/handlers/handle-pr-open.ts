@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { WebhookPayload } from "@actions/github/lib/interfaces.js";
@@ -7,12 +8,14 @@ import { debug } from "../utils";
 import { getReviewerSlackId } from "./common/get-reviewer-slack-id";
 import { getOctokit } from "@actions/github";
 
+const githubToken: string = core.getInput("github_token");
+const slackChannel: string = core.getInput("slack_channel");
+const slackWorkspace: string = core.getInput("slack_workspace");
+
 export async function handlePROpen(
   event: WebhookPayload,
   reviewers: Reviewers
 ) {
-  const slackChannel = process.env.SLACK_CHANNEL as string;
-  const slackWorkspace = process.env.SLACK_WORKSPACE as string;
   const { pull_request } = event;
   if (!pull_request) return;
 
@@ -31,7 +34,6 @@ export async function handlePROpen(
     ".",
     ""
   )})\n<!-- (ts${ts}) -->`;
-  const githubToken = process.env.GITHUB_TOKEN as string;
   const octokit = getOctokit(githubToken);
   await addCommentToPR(
     octokit.rest,

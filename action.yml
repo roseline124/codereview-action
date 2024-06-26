@@ -18,7 +18,10 @@ inputs:
     description: "Path to the reviewers YAML file. default: reviewers.yml on project root level."
     required: false
     default: "reviewers.yml"
-
+  slack_merge_emoji_name:
+    description: "Emoji to attach to slack pr message"
+    required: false
+    default: "white_check_mark"
 runs:
   using: "node20"
   main: "dist/index.js"

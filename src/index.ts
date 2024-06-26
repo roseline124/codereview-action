@@ -11,21 +11,13 @@ import { handleCreateComment } from "./handlers/handle-create-comment";
 import { slackClient } from "./slack";
 import { handlePRMerge } from "./handlers/handle-pr-merge";
 
-const githubToken = process.env.GITHUB_TOKEN as string;
-const slackToken = process.env.SLACK_TOKEN as string;
-const slackChannel = process.env.SLACK_CHANNEL as string;
-const reviewersFilePath = process.env.REVIEWERS_FILE as string;
+const githubToken: string = core.getInput("github_token");
+const slackToken: string = core.getInput("slack_token");
+const slackChannel: string = core.getInput("slack_channel");
+const reviewersFilePath: string = core.getInput("reviewers_file");
 
 async function notifySlack() {
   try {
-    core.info(
-      JSON.stringify({
-        githubToken,
-        slackToken,
-        slackChannel,
-        reviewersFilePath,
-      })
-    );
     core.info("Starting notifySlack function");
 
     const reviewersYaml = await fs.readFile(reviewersFilePath, "utf8");

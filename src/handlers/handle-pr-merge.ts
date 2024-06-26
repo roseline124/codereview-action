@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
 import { addReaction } from "../slack";
@@ -13,8 +14,7 @@ export async function handlePRMerge(event: any) {
   debug({ ts });
   if (!ts) return;
 
-  await addReaction(
-    ts,
-    process.env.SLACK_MERGE_EMOJI_NAME ?? "white_check_mark"
-  );
+  const slackMergeEmojiName: string = core.getInput("slack_merge_emoji_name");
+
+  await addReaction(ts, slackMergeEmojiName);
 }
