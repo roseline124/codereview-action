@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "channel": "C079N0TS5BM",
+  "ts": "1719363283.998789",
+  "message": {
+    "user": "U079K7L9XEH",
+    "type": "message",
+    "ts": "1719363283.998789",
+    "bot_id": "B079QJTLCFN",
+    "app_id": "A07AAR6MXUG",
+    "text": "test-author님이 test-reviewer님께 리뷰 요청을 보냈어요. PR 링크: <https://github.com/test/repo/pull/1>",
+    "team": "TT74MS5C6",
+    "bot_profile": {
+      "id": "B079QJTLCFN",
+      "app_id": "A07AAR6MXUG",
+      "name": "코드리뷰봇",
+      "icons": {
+        "image_36": "https://a.slack-edge.com/80588/img/plugins/app/bot_36.png",
+        "image_48": "https://a.slack-edge.com/80588/img/plugins/app/bot_48.png",
+        "image_72": "https://a.slack-edge.com/80588/img/plugins/app/service_72.png"
+      },
+      "deleted": false,
+      "updated": 1719316623,
+      "team_id": "TT74MS5C6"
+    },
+    "blocks": [
+      {
+        "type": "rich_text",
+        "block_id": "Yv8",
+        "elements": [
+          {
+            "type": "rich_text_section",
+            "elements": [
+              {
+                "type": "text",
+                "text": "test-author님이 test-reviewer님께 리뷰 요청을 보냈어요. PR 링크: "
+              },
+              { "type": "link", "url": "https://github.com/test/repo/pull/1" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "response_metadata": {
+    "scopes": [
+      "chat:write",
+      "chat:write.public",
+      "groups:history",
+      "channels:history",
+      "reactions:write"
+    ],
+    "acceptedScopes": ["chat:write"]
+  }
+}
