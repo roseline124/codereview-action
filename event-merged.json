@@ -1,0 +1,36 @@
+{
+  "action": "closed",
+  "number": 1,
+  "pull_request": {
+    "id": 1,
+    "number": 1,
+    "state": "closed",
+    "title": "Update README",
+    "user": {
+      "login": "roseline124"
+    },
+    "body": "This is a test PR",
+    "created_at": "2021-01-01T00:00:00Z",
+    "updated_at": "2021-01-01T00:00:00Z",
+    "closed_at": "2021-01-01T00:00:00Z",
+    "merged_at": "2021-01-01T00:00:00Z",
+    "merge_commit_sha": "abcd1234",
+    "html_url": "https://github.com/roseline124/codereview-action/pull/1",
+    "labels": [
+      {
+        "name": "bug"
+      }
+    ]
+  },
+  "repository": {
+    "id": 1,
+    "name": "repo",
+    "full_name": "test/repo",
+    "owner": {
+      "login": "test"
+    }
+  },
+  "sender": {
+    "login": "roseline124"
+  }
+}

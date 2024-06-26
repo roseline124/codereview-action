@@ -38,6 +38,4 @@ jobs:
           SLACK_WORKSPACE: mildangeng
           # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          # SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
           REVIEWERS_FILE: ${{ env.REVIEWERS_FILE }}
-          ACTIONS_STEP_DEBUG: true

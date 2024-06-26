@@ -1,4 +1,4 @@
-import { Reviewers } from "../types.ts";
+import { Reviewers } from "../../types.ts";
 
 export function getReviewerSlackId(event: any, reviewers: Reviewers): string {
   const { pull_request } = event;

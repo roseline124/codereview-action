@@ -5,7 +5,7 @@ import { octokit } from "../github.ts";
 import { addCommentToPR, postMessage } from "../slack.ts";
 import { Reviewers } from "../types.ts";
 import { debug } from "../utils.ts";
-import { getReviewerSlackId } from "./get-reviewer-slack-id.ts";
+import { getReviewerSlackId } from "./common/get-reviewer-slack-id.ts";
 
 export async function handlePROpen(
   event: WebhookPayload,
