@@ -40469,6 +40469,8 @@ async function findSlackTsInComments(prNumber, owner, repo) {
     for (const comment of comments.data) {
         if (!comment.body)
             continue;
+        core.info(`comment.body: ${comment.body}`);
+        core.info(`SKIP_COMMENT_MARKER: ${constants_1.SKIP_COMMENT_MARKER}`);
         if (comment.body.includes(constants_1.SKIP_COMMENT_MARKER))
             continue;
         (0, utils_1.debug)({ body: comment.body });
