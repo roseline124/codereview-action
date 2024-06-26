@@ -8,11 +8,11 @@ import { Reviewers } from "../types";
  * @TODO 코드리뷰로 한꺼번에 제출해도 코멘트 달리는지 확인
  */
 export async function handleCreateComment(event: any, reviewers: Reviewers) {
-  const { comment, issue } = event;
+  const { comment, pull_request } = event;
   const commentAuthorGithubName = comment.user.login;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
-  const prNumber = issue.pull_request.number;
+  const prNumber = pull_request.number;
 
   // GitHub Actions의 GITHUB_TOKEN으로 작성된 코멘트 제외
   if (commentAuthorGithubName === "github-actions[bot]") {
