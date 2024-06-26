@@ -1,0 +1,22 @@
+name: "PR Slack Notification"
+description: "A GitHub Action to notify Slack about pull request events."
+author: "roseline124"
+inputs:
+  github_token:
+    description: "GitHub Token"
+    required: true
+  slack_token:
+    description: "Slack Bot Token"
+    required: true
+  slack_channel:
+    description: "Slack Channel ID"
+    required: true
+  slack_workspace:
+    description: "Slack Workspace Name"
+    required: true
+  reviewers_file:
+    description: "Path to the reviewers YAML file"
+    required: true
+runs:
+  using: "node12"
+  main: "src/notify-slack.ts"

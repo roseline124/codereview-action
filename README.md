@@ -1,5 +1,7 @@
 # github codereview action
 
+## test action
+
 1. test action
 
 - `act pull_request`
@@ -14,3 +16,18 @@
 - pr review request 이벤트: `act pull_request --eventpath event-review-request.json`
 - comment 이벤트: `act pull_request --eventpath event-comment.json`
 - merge 이벤트: `act pull_request --eventpath event-merged.json`
+
+## reviewers.yml format
+
+```
+reviewers:
+  - githubName: roseline124
+    slackId: U07712R6TGS
+    name: hyunjisong
+  - githubName: c
+    slackId: d
+    name: leemonglyong
+  - githubName: e
+    slackId: f
+    name: hongkildong
+```
