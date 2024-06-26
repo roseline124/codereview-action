@@ -12,11 +12,11 @@ export async function handleCreateComment(event: any, reviewers: Reviewers) {
   const commentAuthorGithubName = comment.user.login;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
+  core.info(
+    `comment number: ${comment.id}, issue number: ${issue?.number}, pr number: ${pull_request?.number}`
+  );
   const prNumber = pull_request.number;
 
-  core.info(
-    `comment number: ${comment.id}, issue number: ${issue?.number}, pr number: ${pull_request.number}`
-  );
   // GitHub Actions의 GITHUB_TOKEN으로 작성된 코멘트 제외
   if (commentAuthorGithubName === "github-actions[bot]") {
     core.info("Skipping comment created by GitHub Actions bot.");
