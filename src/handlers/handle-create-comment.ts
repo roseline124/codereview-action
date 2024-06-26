@@ -5,6 +5,7 @@ import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
 import { Reviewers } from "../types";
 import { generateComment } from "./common/generate-comment";
 import { SKIP_COMMENT_MARKER } from "../constants";
+import { addComment } from "./common/add-comment";
 
 export async function handleCreateComment(
   octokit: any,
@@ -12,21 +13,11 @@ export async function handleCreateComment(
   reviewers: Reviewers
 ) {
   const { comment, issue } = event;
-  const commentAuthorGithubName = comment.user.login;
+
+  const prNumber = issue.number;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
-  const prNumber = issue.number;
 
   if (comment.body.includes(SKIP_COMMENT_MARKER)) return;
-  const ts = await findSlackTsInComments(octokit, prNumber, owner, repo);
-  if (!ts) return;
-
-  const commentAuthor = reviewers.reviewers.find(
-    (rev) => rev.githubName === commentAuthorGithubName
-  );
-  const message = generateComment(commentAuthor?.name ?? "", comment.body);
-  core.info("Message constructed:");
-  core.debug(message);
-
-  await postThreadMessage(ts, message);
+  await addComment({ octokit, prNumber, owner, repo, reviewers, comment });
 }

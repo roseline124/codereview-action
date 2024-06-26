@@ -4,7 +4,7 @@ import { Reviewers } from "../types";
 import { postThreadMessage } from "../slack";
 import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
 import { generateComment } from "./common/generate-comment";
-import { getOctokit } from "../github";
+import { debug } from "../utils";
 
 export async function handleReviewSubmitted(
   octokit: any,
@@ -29,6 +29,11 @@ export async function handleReviewSubmitted(
 
   const submittedReviewComments = reviewComments.filter(
     (comment: any) => comment.pull_request_review_id === review.id
+  );
+
+  debug({ reviewComments });
+  core.info(
+    `submittedReviewComments.length: ${submittedReviewComments.length}`
   );
 
   // 코멘트를 하나로 합쳐서 보낼 수 있지만 슬랙 메시지에 글자 수 제한이 없어서 하나씩 나눠 보냄.

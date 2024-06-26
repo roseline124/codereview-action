@@ -40425,6 +40425,54 @@ async function getOctokit() {
 
 /***/ }),
 
+/***/ 4820:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.addComment = addComment;
+const core = __importStar(__nccwpck_require__(9093));
+const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
+const generate_comment_1 = __nccwpck_require__(2228);
+const slack_1 = __nccwpck_require__(6134);
+async function addComment({ octokit, owner, prNumber, repo, reviewers, comment, }) {
+    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
+    if (!ts)
+        return;
+    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
+    const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user.login, comment.body);
+    core.info("Message constructed:");
+    core.debug(message);
+    await (0, slack_1.postThreadMessage)(ts, message);
+}
+
+
+/***/ }),
+
 /***/ 4945:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -40548,27 +40596,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleCreateComment = handleCreateComment;
 const github = __importStar(__nccwpck_require__(5942));
-const core = __importStar(__nccwpck_require__(9093));
-const slack_1 = __nccwpck_require__(6134);
-const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
-const generate_comment_1 = __nccwpck_require__(2228);
 const constants_1 = __nccwpck_require__(8926);
+const add_comment_1 = __nccwpck_require__(4820);
 async function handleCreateComment(octokit, event, reviewers) {
     const { comment, issue } = event;
-    const commentAuthorGithubName = comment.user.login;
+    const prNumber = issue.number;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
-    const prNumber = issue.number;
     if (comment.body.includes(constants_1.SKIP_COMMENT_MARKER))
         return;
-    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
-    if (!ts)
-        return;
-    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === commentAuthorGithubName);
-    const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? "", comment.body);
-    core.info("Message constructed:");
-    core.debug(message);
-    await (0, slack_1.postThreadMessage)(ts, message);
+    await (0, add_comment_1.addComment)({ octokit, prNumber, owner, repo, reviewers, comment });
 }
 
 
@@ -40793,6 +40830,52 @@ async function handleRequestReview(octokit, event, reviewers) {
 
 /***/ }),
 
+/***/ 5997:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handleReviewCommentCreated = handleReviewCommentCreated;
+const core = __importStar(__nccwpck_require__(9093));
+const add_comment_1 = __nccwpck_require__(4820);
+async function handleReviewCommentCreated(octokit, event, reviewers) {
+    const { comment, pull_request } = event;
+    const prNumber = pull_request.number;
+    const owner = pull_request.base.repo.owner.login;
+    const repo = pull_request.base.repo.name;
+    core.info(`Owner: ${owner}`);
+    core.info(`Repo: ${repo}`);
+    core.info(`PR Number: ${prNumber}`);
+    await (0, add_comment_1.addComment)({ octokit, prNumber, owner, repo, reviewers, comment });
+}
+
+
+/***/ }),
+
 /***/ 7489:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -40829,6 +40912,7 @@ const github = __importStar(__nccwpck_require__(5942));
 const slack_1 = __nccwpck_require__(6134);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const generate_comment_1 = __nccwpck_require__(2228);
+const utils_1 = __nccwpck_require__(442);
 async function handleReviewSubmitted(octokit, event, reviewers) {
     const { review, pull_request } = event;
     const prNumber = pull_request.number;
@@ -40839,6 +40923,8 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
         return;
     const reviewComments = await listReviewComments(octokit, owner, repo, prNumber);
     const submittedReviewComments = reviewComments.filter((comment) => comment.pull_request_review_id === review.id);
+    (0, utils_1.debug)({ reviewComments });
+    core.info(`submittedReviewComments.length: ${submittedReviewComments.length}`);
     // 코멘트를 하나로 합쳐서 보낼 수 있지만 슬랙 메시지에 글자 수 제한이 없어서 하나씩 나눠 보냄.
     for (const comment of submittedReviewComments) {
         const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
@@ -40906,6 +40992,7 @@ const handle_request_review_1 = __nccwpck_require__(2090);
 const utils_1 = __nccwpck_require__(442);
 const handle_review_submitted_1 = __nccwpck_require__(7489);
 const github_1 = __nccwpck_require__(8469);
+const handle_review_comment_created_1 = __nccwpck_require__(5997);
 const reviewersFilePath = core.getInput("reviewers_file");
 async function notifySlack() {
     try {
@@ -40929,6 +41016,10 @@ async function notifySlack() {
         // 코멘트 생성 시 스레드에 달기
         if (action === "created" && comment) {
             return await (0, handle_create_comment_1.handleCreateComment)(octokit, event, reviewers);
+        }
+        if (action === "created" &&
+            github.context.eventName === "pull_request_review_comment") {
+            return await (0, handle_review_comment_created_1.handleReviewCommentCreated)(octokit, event, reviewers);
         }
         // 리뷰를 통해 코멘트 제출하는 경우데도 스레드에 메시지 달기
         if (action === "submitted" && review) {

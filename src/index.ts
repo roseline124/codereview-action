@@ -11,6 +11,7 @@ import { Reviewers } from "./types";
 import { debug } from "./utils";
 import { handleReviewSubmitted } from "./handlers/handle-review-submitted";
 import { getOctokit } from "./github";
+import { handleReviewCommentCreated } from "./handlers/handle-review-comment-created";
 
 const reviewersFilePath: string = core.getInput("reviewers_file");
 
@@ -41,6 +42,13 @@ async function notifySlack() {
     // 코멘트 생성 시 스레드에 달기
     if (action === "created" && comment) {
       return await handleCreateComment(octokit, event, reviewers);
+    }
+
+    if (
+      action === "created" &&
+      github.context.eventName === "pull_request_review_comment"
+    ) {
+      return await handleReviewCommentCreated(octokit, event, reviewers);
     }
 
     // 리뷰를 통해 코멘트 제출하는 경우데도 스레드에 메시지 달기
