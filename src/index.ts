@@ -11,8 +11,6 @@ import { handleCreateComment } from "./handlers/handle-create-comment";
 import { slackClient } from "./slack";
 import { handlePRMerge } from "./handlers/handle-pr-merge";
 
-const githubToken: string = core.getInput("github_token");
-const slackToken: string = core.getInput("slack_token");
 const slackChannel: string = core.getInput("slack_channel");
 const reviewersFilePath: string = core.getInput("reviewers_file");
 
