@@ -12,12 +12,6 @@ export async function handleCreateComment(event: any, reviewers: Reviewers) {
   const repo = github.context.repo.repo;
   const prNumber = issue.number;
 
-  // GitHub Actions의 GITHUB_TOKEN으로 작성된 코멘트 제외
-  if (commentAuthorGithubName === "github-actions[bot]") {
-    core.info("Skipping comment created by GitHub Actions bot.");
-    return;
-  }
-
   // Find the existing Slack ts from comments
   const ts = await findSlackTsInComments(prNumber, owner, repo);
   if (!ts) return;

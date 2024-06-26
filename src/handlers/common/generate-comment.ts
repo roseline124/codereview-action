@@ -1,3 +1,3 @@
 export function generateComment(authorName: string, comment: string) {
-  return `💬 ${authorName}: ${comment}`;
+  return `💬 ${authorName}: ${comment.trim()}`;
 }

@@ -40426,12 +40426,36 @@ async function getOctokit() {
 /***/ }),
 
 /***/ 4945:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.findSlackTsInComments = findSlackTsInComments;
+const core = __importStar(__nccwpck_require__(9093));
 const utils_1 = __nccwpck_require__(442);
 const github_1 = __nccwpck_require__(8469);
 const constants_1 = __nccwpck_require__(8926);
@@ -40450,7 +40474,9 @@ async function findSlackTsInComments(prNumber, owner, repo) {
         (0, utils_1.debug)({ body: comment.body });
         const match = comment.body.match(/ts(\d+\.\d+)/);
         if (match) {
-            return match[1].replace("ts", "");
+            const ts = match[1].replace("ts", "");
+            core.info(`ts: ${ts}`);
+            return ts;
         }
     }
     return null;
@@ -40467,7 +40493,7 @@ async function findSlackTsInComments(prNumber, owner, repo) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateComment = generateComment;
 function generateComment(authorName, comment) {
-    return `💬 ${authorName}: ${comment}`;
+    return `💬 ${authorName}: ${comment.trim()}`;
 }
 
 
@@ -40536,11 +40562,6 @@ async function handleCreateComment(event, reviewers) {
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
     const prNumber = issue.number;
-    // GitHub Actions의 GITHUB_TOKEN으로 작성된 코멘트 제외
-    if (commentAuthorGithubName === "github-actions[bot]") {
-        core.info("Skipping comment created by GitHub Actions bot.");
-        return;
-    }
     // Find the existing Slack ts from comments
     const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
     if (!ts)
@@ -40882,7 +40903,6 @@ async function notifySlack() {
         core.info(`Event loaded: ${JSON.stringify(event)}`);
         (0, utils_1.debug)(event);
         const { action, pull_request, comment, review } = event;
-        let message = "";
         // PR 오픈 시 메시지 생성
         if (action === "opened" && pull_request) {
             return await (0, handle_pr_open_1.handlePROpen)(event, reviewers);

@@ -26,8 +26,6 @@ async function notifySlack() {
     debug(event);
     const { action, pull_request, comment, review } = event;
 
-    let message = "";
-
     // PR 오픈 시 메시지 생성
     if (action === "opened" && pull_request) {
       return await handlePROpen(event, reviewers);

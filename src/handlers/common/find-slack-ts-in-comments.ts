@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import { debug } from "../../utils";
 import { getOctokit } from "../../github";
 import { SKIP_COMMENT_MARKER } from "../../constants";
@@ -20,7 +21,9 @@ export async function findSlackTsInComments(
     debug({ body: comment.body });
     const match = comment.body.match(/ts(\d+\.\d+)/);
     if (match) {
-      return match[1].replace("ts", "");
+      const ts = match[1].replace("ts", "");
+      core.info(`ts: ${ts}`);
+      return ts;
     }
   }
   return null;
