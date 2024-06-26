@@ -13,6 +13,7 @@ const slackChannel: string = core.getInput("slack_channel");
 const slackWorkspace: string = core.getInput("slack_workspace");
 
 export async function handlePROpen(
+  octokit: any,
   event: WebhookPayload,
   reviewers: Reviewers
 ) {
@@ -34,7 +35,6 @@ export async function handlePROpen(
     ".",
     ""
   )})\n<!-- (ts${ts}) ${SKIP_COMMENT_MARKER} -->`;
-  const octokit = await getOctokit();
   await addCommentToPR(
     octokit.rest,
     prNumber,

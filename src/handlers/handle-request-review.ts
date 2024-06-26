@@ -5,7 +5,11 @@ import { debug } from "../utils";
 import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
 import { getReviewerSlackId } from "./common/get-reviewer-slack-id";
 
-export async function handleRequestReview(event: any, reviewers: Reviewers) {
+export async function handleRequestReview(
+  octokit: any,
+  event: any,
+  reviewers: Reviewers
+) {
   const { pull_request } = event;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
@@ -13,7 +17,7 @@ export async function handleRequestReview(event: any, reviewers: Reviewers) {
 
   const newReviewers = getReviewerSlackId(event, reviewers);
 
-  const slackTs = await findSlackTsInComments(prNumber, owner, repo);
+  const slackTs = await findSlackTsInComments(octokit, prNumber, owner, repo);
   if (!slackTs) return;
   const slackMessage = await getSlackMessage(slackTs);
   const blocks = slackMessage?.blocks ?? [];

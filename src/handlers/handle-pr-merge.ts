@@ -4,13 +4,13 @@ import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
 import { addReaction } from "../slack";
 import { debug } from "../utils";
 
-export async function handlePRMerge(event: any) {
+export async function handlePRMerge(octokit: any, event: any) {
   const { pull_request } = event;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
   const prNumber = pull_request.number;
 
-  const ts = await findSlackTsInComments(prNumber, owner, repo);
+  const ts = await findSlackTsInComments(octokit, prNumber, owner, repo);
 
   core.info(`ts: ${ts}`);
   core.info(JSON.stringify({ owner, repo, prNumber }));

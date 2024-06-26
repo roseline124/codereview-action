@@ -40457,9 +40457,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.findSlackTsInComments = findSlackTsInComments;
 const core = __importStar(__nccwpck_require__(9093));
 const utils_1 = __nccwpck_require__(442);
-const github_1 = __nccwpck_require__(8469);
-async function findSlackTsInComments(prNumber, owner, repo) {
-    const octokit = await (0, github_1.getOctokit)();
+async function findSlackTsInComments(octokit, prNumber, owner, repo) {
     const comments = await octokit.rest.issues.listComments({
         owner,
         repo,
@@ -40555,7 +40553,7 @@ const slack_1 = __nccwpck_require__(6134);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const generate_comment_1 = __nccwpck_require__(2228);
 const constants_1 = __nccwpck_require__(8926);
-async function handleCreateComment(event, reviewers) {
+async function handleCreateComment(octokit, event, reviewers) {
     const { comment, issue } = event;
     const commentAuthorGithubName = comment.user.login;
     const owner = github.context.repo.owner;
@@ -40563,7 +40561,7 @@ async function handleCreateComment(event, reviewers) {
     const prNumber = issue.number;
     if (comment.body.includes(constants_1.SKIP_COMMENT_MARKER))
         return;
-    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
+    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
     if (!ts)
         return;
     const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === commentAuthorGithubName);
@@ -40611,12 +40609,12 @@ const github = __importStar(__nccwpck_require__(5942));
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
-async function handlePRMerge(event) {
+async function handlePRMerge(octokit, event) {
     const { pull_request } = event;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
     const prNumber = pull_request.number;
-    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
+    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
     core.info(`ts: ${ts}`);
     core.info(JSON.stringify({ owner, repo, prNumber }));
     (0, utils_1.debug)({ ts });
@@ -40664,11 +40662,10 @@ const github = __importStar(__nccwpck_require__(5942));
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
 const get_reviewer_slack_id_1 = __nccwpck_require__(5226);
-const github_1 = __nccwpck_require__(8469);
 const constants_1 = __nccwpck_require__(8926);
 const slackChannel = core.getInput("slack_channel");
 const slackWorkspace = core.getInput("slack_workspace");
-async function handlePROpen(event, reviewers) {
+async function handlePROpen(octokit, event, reviewers) {
     const { pull_request } = event;
     if (!pull_request)
         return;
@@ -40681,7 +40678,6 @@ async function handlePROpen(event, reviewers) {
     (0, utils_1.debug)({ ts, owner, repo, prNumber });
     // PR에 슬랙 메시지 ts 저장
     const slackMessageComment = `코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기](https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(".", "")})\n<!-- (ts${ts}) ${constants_1.SKIP_COMMENT_MARKER} -->`;
-    const octokit = await (0, github_1.getOctokit)();
     await (0, slack_1.addCommentToPR)(octokit.rest, prNumber, owner, repo, slackMessageComment);
 }
 function buildSlackBlock(reviewers, pullRequest) {
@@ -40758,13 +40754,13 @@ const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const get_reviewer_slack_id_1 = __nccwpck_require__(5226);
-async function handleRequestReview(event, reviewers) {
+async function handleRequestReview(octokit, event, reviewers) {
     const { pull_request } = event;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
     const prNumber = pull_request.number;
     const newReviewers = (0, get_reviewer_slack_id_1.getReviewerSlackId)(event, reviewers);
-    const slackTs = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
+    const slackTs = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
     if (!slackTs)
         return;
     const slackMessage = await (0, slack_1.getSlackMessage)(slackTs);
@@ -40827,24 +40823,41 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleReviewSubmitted = handleReviewSubmitted;
+exports.listReviewComments = listReviewComments;
 const core = __importStar(__nccwpck_require__(9093));
 const github = __importStar(__nccwpck_require__(5942));
 const slack_1 = __nccwpck_require__(6134);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const generate_comment_1 = __nccwpck_require__(2228);
-async function handleReviewSubmitted(event, reviewers) {
-    const { review, pull_request, comment } = event;
+async function handleReviewSubmitted(octokit, event, reviewers) {
+    const { review, pull_request } = event;
     const prNumber = pull_request.number;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
-    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
+    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
     if (!ts)
         return;
-    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user.login);
-    const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? "", comment.body);
-    core.info("Message constructed:");
-    core.debug(message);
-    await (0, slack_1.postThreadMessage)(ts, message);
+    const reviewComments = await listReviewComments(octokit, owner, repo, prNumber);
+    const submittedReviewComments = reviewComments.filter((comment) => comment.pull_request_review_id === review.id);
+    // 코멘트를 하나로 합쳐서 보낼 수 있지만 슬랙 메시지에 글자 수 제한이 없어서 하나씩 나눠 보냄.
+    for (const comment of submittedReviewComments) {
+        const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
+        const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user.login, comment.body);
+        core.info("Message constructed:");
+        core.debug(message);
+        await (0, slack_1.postThreadMessage)(ts, message);
+    }
+}
+async function listReviewComments(octokit, owner, repo, prNumber) {
+    const response = await octokit.rest.pulls.listReviewComments({
+        owner,
+        repo,
+        pull_number: prNumber,
+    });
+    if (response.status !== 200) {
+        throw new Error(`Failed to fetch review comments: ${response.status}`);
+    }
+    return response.data;
 }
 
 
@@ -40892,9 +40905,11 @@ const handle_pr_open_1 = __nccwpck_require__(840);
 const handle_request_review_1 = __nccwpck_require__(2090);
 const utils_1 = __nccwpck_require__(442);
 const handle_review_submitted_1 = __nccwpck_require__(7489);
+const github_1 = __nccwpck_require__(8469);
 const reviewersFilePath = core.getInput("reviewers_file");
 async function notifySlack() {
     try {
+        const octokit = await (0, github_1.getOctokit)();
         core.info("Starting notifySlack function");
         const reviewersYaml = await fs_1.promises.readFile(reviewersFilePath, "utf8");
         const reviewers = js_yaml_1.default.load(reviewersYaml);
@@ -40905,23 +40920,23 @@ async function notifySlack() {
         const { action, pull_request, comment, review } = event;
         // PR 오픈 시 메시지 생성
         if (action === "opened" && pull_request) {
-            return await (0, handle_pr_open_1.handlePROpen)(event, reviewers);
+            return await (0, handle_pr_open_1.handlePROpen)(octokit, event, reviewers);
         }
         // 리뷰어 추가 시 기존 메시지의 리뷰어 업데이트
         if (action === "review_requested" && pull_request) {
-            return await (0, handle_request_review_1.handleRequestReview)(event, reviewers);
+            return await (0, handle_request_review_1.handleRequestReview)(octokit, event, reviewers);
         }
         // 코멘트 생성 시 스레드에 달기
         if (action === "created" && comment) {
-            return await (0, handle_create_comment_1.handleCreateComment)(event, reviewers);
+            return await (0, handle_create_comment_1.handleCreateComment)(octokit, event, reviewers);
         }
         // 리뷰를 통해 코멘트 제출하는 경우데도 스레드에 메시지 달기
         if (action === "submitted" && review) {
-            return await (0, handle_review_submitted_1.handleReviewSubmitted)(event, reviewers);
+            return await (0, handle_review_submitted_1.handleReviewSubmitted)(octokit, event, reviewers);
         }
         if (action === "closed" && pull_request?.merged_at) {
             core.info("Event merged");
-            return await (0, handle_pr_merge_1.handlePRMerge)(event);
+            return await (0, handle_pr_merge_1.handlePRMerge)(octokit, event);
         }
     }
     catch (error) {

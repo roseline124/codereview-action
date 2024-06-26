@@ -10,11 +10,13 @@ import { handleRequestReview } from "./handlers/handle-request-review";
 import { Reviewers } from "./types";
 import { debug } from "./utils";
 import { handleReviewSubmitted } from "./handlers/handle-review-submitted";
+import { getOctokit } from "./github";
 
 const reviewersFilePath: string = core.getInput("reviewers_file");
 
 async function notifySlack() {
   try {
+    const octokit = await getOctokit();
     core.info("Starting notifySlack function");
 
     const reviewersYaml = await fs.readFile(reviewersFilePath, "utf8");
@@ -28,27 +30,27 @@ async function notifySlack() {
 
     // PR 오픈 시 메시지 생성
     if (action === "opened" && pull_request) {
-      return await handlePROpen(event, reviewers);
+      return await handlePROpen(octokit, event, reviewers);
     }
 
     // 리뷰어 추가 시 기존 메시지의 리뷰어 업데이트
     if (action === "review_requested" && pull_request) {
-      return await handleRequestReview(event, reviewers);
+      return await handleRequestReview(octokit, event, reviewers);
     }
 
     // 코멘트 생성 시 스레드에 달기
     if (action === "created" && comment) {
-      return await handleCreateComment(event, reviewers);
+      return await handleCreateComment(octokit, event, reviewers);
     }
 
     // 리뷰를 통해 코멘트 제출하는 경우데도 스레드에 메시지 달기
     if (action === "submitted" && review) {
-      return await handleReviewSubmitted(event, reviewers);
+      return await handleReviewSubmitted(octokit, event, reviewers);
     }
 
     if (action === "closed" && pull_request?.merged_at) {
       core.info("Event merged");
-      return await handlePRMerge(event);
+      return await handlePRMerge(octokit, event);
     }
   } catch (error: any) {
     core.error("Error in notifySlack function:");

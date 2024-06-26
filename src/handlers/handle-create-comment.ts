@@ -6,7 +6,11 @@ import { Reviewers } from "../types";
 import { generateComment } from "./common/generate-comment";
 import { SKIP_COMMENT_MARKER } from "../constants";
 
-export async function handleCreateComment(event: any, reviewers: Reviewers) {
+export async function handleCreateComment(
+  octokit: any,
+  event: any,
+  reviewers: Reviewers
+) {
   const { comment, issue } = event;
   const commentAuthorGithubName = comment.user.login;
   const owner = github.context.repo.owner;
@@ -14,7 +18,7 @@ export async function handleCreateComment(event: any, reviewers: Reviewers) {
   const prNumber = issue.number;
 
   if (comment.body.includes(SKIP_COMMENT_MARKER)) return;
-  const ts = await findSlackTsInComments(prNumber, owner, repo);
+  const ts = await findSlackTsInComments(octokit, prNumber, owner, repo);
   if (!ts) return;
 
   const commentAuthor = reviewers.reviewers.find(
