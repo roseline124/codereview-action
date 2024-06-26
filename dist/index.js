@@ -40927,12 +40927,16 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
     core.info(`submittedReviewComments.length: ${submittedReviewComments.length}`);
     // 코멘트를 하나로 합쳐서 보낼 수 있지만 슬랙 메시지에 글자 수 제한이 없어서 하나씩 나눠 보냄.
     for (const comment of submittedReviewComments) {
+        if (!comment.body)
+            continue;
         const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
         const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user.login, comment.body);
         core.info("Message constructed:");
         core.debug(message);
         await (0, slack_1.postThreadMessage)(ts, message);
     }
+    if (!review.body)
+        return;
     let lastMessage = "";
     const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user.login);
     if (review.state === "approved") {

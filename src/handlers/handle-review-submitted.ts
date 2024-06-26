@@ -37,6 +37,7 @@ export async function handleReviewSubmitted(
 
   // 코멘트를 하나로 합쳐서 보낼 수 있지만 슬랙 메시지에 글자 수 제한이 없어서 하나씩 나눠 보냄.
   for (const comment of submittedReviewComments) {
+    if (!comment.body) continue;
     const commentAuthor = reviewers.reviewers.find(
       (rev) => rev.githubName === comment.user.login
     );
@@ -50,6 +51,7 @@ export async function handleReviewSubmitted(
     await postThreadMessage(ts, message);
   }
 
+  if (!review.body) return;
   let lastMessage: string = "";
   const commentAuthor = reviewers.reviewers.find(
     (rev) => rev.githubName === review.user.login
