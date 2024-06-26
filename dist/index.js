@@ -40444,6 +40444,20 @@ async function findSlackTsInComments(prNumber, owner, repo) {
 
 /***/ }),
 
+/***/ 2228:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateComment = generateComment;
+function generateComment(authorName, comment) {
+    return `💬 ${authorName}: "${comment}"`;
+}
+
+
+/***/ }),
+
 /***/ 5226:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -40500,9 +40514,7 @@ const github = __importStar(__nccwpck_require__(5942));
 const core = __importStar(__nccwpck_require__(9093));
 const slack_1 = __nccwpck_require__(6134);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
-/**
- * @TODO 코드리뷰로 한꺼번에 제출해도 코멘트 달리는지 확인
- */
+const generate_comment_1 = __nccwpck_require__(2228);
 async function handleCreateComment(event, reviewers) {
     const { comment, issue } = event;
     const commentAuthorGithubName = comment.user.login;
@@ -40519,7 +40531,7 @@ async function handleCreateComment(event, reviewers) {
     if (!ts)
         return;
     const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === commentAuthorGithubName);
-    const message = `💬 ${commentAuthor?.name}: "${comment.body}"`;
+    const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? "", comment.body);
     core.info("Message constructed:");
     core.debug(message);
     await (0, slack_1.postThreadMessage)(ts, message);
@@ -40748,6 +40760,59 @@ async function handleRequestReview(event, reviewers) {
 
 /***/ }),
 
+/***/ 7489:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handleReviewSubmitted = handleReviewSubmitted;
+const core = __importStar(__nccwpck_require__(9093));
+const github = __importStar(__nccwpck_require__(5942));
+const slack_1 = __nccwpck_require__(6134);
+const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
+const generate_comment_1 = __nccwpck_require__(2228);
+async function handleReviewSubmitted(event, reviewers) {
+    const { review, pull_request, comment } = event;
+    const prNumber = pull_request.number;
+    const owner = github.context.repo.owner;
+    const repo = github.context.repo.repo;
+    const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(prNumber, owner, repo);
+    if (!ts)
+        return;
+    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user.login);
+    const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? "", comment.body);
+    core.info("Message constructed:");
+    core.debug(message);
+    await (0, slack_1.postThreadMessage)(ts, message);
+}
+
+
+/***/ }),
+
 /***/ 2694:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -40784,13 +40849,12 @@ const core = __importStar(__nccwpck_require__(9093));
 const github = __importStar(__nccwpck_require__(5942));
 const fs_1 = __nccwpck_require__(7147);
 const js_yaml_1 = __importDefault(__nccwpck_require__(6365));
+const handle_create_comment_1 = __nccwpck_require__(1036);
+const handle_pr_merge_1 = __nccwpck_require__(1235);
 const handle_pr_open_1 = __nccwpck_require__(840);
 const handle_request_review_1 = __nccwpck_require__(2090);
 const utils_1 = __nccwpck_require__(442);
-const handle_create_comment_1 = __nccwpck_require__(1036);
-const slack_1 = __nccwpck_require__(6134);
-const handle_pr_merge_1 = __nccwpck_require__(1235);
-const slackChannel = core.getInput("slack_channel");
+const handle_review_submitted_1 = __nccwpck_require__(7489);
 const reviewersFilePath = core.getInput("reviewers_file");
 async function notifySlack() {
     try {
@@ -40801,7 +40865,7 @@ async function notifySlack() {
         const event = github.context.payload;
         core.info("Event loaded:");
         (0, utils_1.debug)(event);
-        const { action, pull_request, comment } = event;
+        const { action, pull_request, comment, review } = event;
         let message = "";
         // PR 오픈 시 메시지 생성
         if (action === "opened" && pull_request) {
@@ -40815,20 +40879,13 @@ async function notifySlack() {
         if (action === "created" && comment) {
             return await (0, handle_create_comment_1.handleCreateComment)(event, reviewers);
         }
+        // 리뷰를 통해 코멘트 제출하는 경우데도 스레드에 메시지 달기
+        if (action === "submitted" && review) {
+            return await (0, handle_review_submitted_1.handleReviewSubmitted)(event, reviewers);
+        }
         if (action === "closed" && pull_request?.merged_at) {
             core.info("Event merged");
             return await (0, handle_pr_merge_1.handlePRMerge)(event);
-        }
-        if (message) {
-            core.info("Sending message to Slack:");
-            core.debug(message);
-            const response = await slack_1.slackClient.chat.postMessage({
-                channel: slackChannel,
-                text: message,
-            });
-            response;
-            core.info("Message sent to Slack");
-            (0, utils_1.debug)(response);
         }
     }
     catch (error) {

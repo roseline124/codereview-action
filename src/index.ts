@@ -3,15 +3,14 @@ import * as github from "@actions/github";
 
 import { promises as fs } from "fs";
 import yaml from "js-yaml";
+import { handleCreateComment } from "./handlers/handle-create-comment";
+import { handlePRMerge } from "./handlers/handle-pr-merge";
 import { handlePROpen } from "./handlers/handle-pr-open";
 import { handleRequestReview } from "./handlers/handle-request-review";
 import { Reviewers } from "./types";
 import { debug } from "./utils";
-import { handleCreateComment } from "./handlers/handle-create-comment";
-import { slackClient } from "./slack";
-import { handlePRMerge } from "./handlers/handle-pr-merge";
+import { handleReviewSubmitted } from "./handlers/handle-review-submitted";
 
-const slackChannel: string = core.getInput("slack_channel");
 const reviewersFilePath: string = core.getInput("reviewers_file");
 
 async function notifySlack() {
@@ -25,7 +24,7 @@ async function notifySlack() {
     const event = github.context.payload;
     core.info("Event loaded:");
     debug(event);
-    const { action, pull_request, comment } = event;
+    const { action, pull_request, comment, review } = event;
 
     let message = "";
 
@@ -44,24 +43,14 @@ async function notifySlack() {
       return await handleCreateComment(event, reviewers);
     }
 
+    // 리뷰를 통해 코멘트 제출하는 경우데도 스레드에 메시지 달기
+    if (action === "submitted" && review) {
+      return await handleReviewSubmitted(event, reviewers);
+    }
+
     if (action === "closed" && pull_request?.merged_at) {
       core.info("Event merged");
       return await handlePRMerge(event);
-    }
-
-    if (message) {
-      core.info("Sending message to Slack:");
-      core.debug(message);
-
-      const response = await slackClient.chat.postMessage({
-        channel: slackChannel,
-        text: message,
-      });
-
-      response;
-
-      core.info("Message sent to Slack");
-      debug(response);
     }
   } catch (error: any) {
     core.error("Error in notifySlack function:");

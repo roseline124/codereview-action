@@ -1,29 +1,22 @@
-import * as github from "@actions/github";
 import * as core from "@actions/core";
+import * as github from "@actions/github";
+import { Reviewers } from "../types";
 import { postThreadMessage } from "../slack";
 import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
-import { Reviewers } from "../types";
 import { generateComment } from "./common/generate-comment";
 
-export async function handleCreateComment(event: any, reviewers: Reviewers) {
-  const { comment, issue } = event;
-  const commentAuthorGithubName = comment.user.login;
+export async function handleReviewSubmitted(event: any, reviewers: Reviewers) {
+  const { review, pull_request, comment } = event;
+
+  const prNumber = pull_request.number;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
-  const prNumber = issue.number;
 
-  // GitHub Actions의 GITHUB_TOKEN으로 작성된 코멘트 제외
-  if (commentAuthorGithubName === "github-actions[bot]") {
-    core.info("Skipping comment created by GitHub Actions bot.");
-    return;
-  }
-
-  // Find the existing Slack ts from comments
   const ts = await findSlackTsInComments(prNumber, owner, repo);
   if (!ts) return;
 
   const commentAuthor = reviewers.reviewers.find(
-    (rev) => rev.githubName === commentAuthorGithubName
+    (rev) => rev.githubName === review.user.login
   );
   const message = generateComment(commentAuthor?.name ?? "", comment.body);
   core.info("Message constructed:");
