@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build
+        run: pnpm build
+
       - name: Read reviewers from YAML
         id: read_reviewers
         run: echo "REVIEWERS_FILE=reviewers.yml" >> $GITHUB_ENV

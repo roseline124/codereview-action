@@ -40739,15 +40739,41 @@ function buildSlackBlock(reviewers, pullRequest) {
             type: "section",
             text: {
                 type: "mrkdwn",
-                text: `*📮 ${`<@${prAuthorSlackId}>` || prAuthor}님이 ${requestMessage}*\n*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}\n`,
+                text: `*📮 ${`<@${prAuthorSlackId}>` || prAuthor}님이 ${requestMessage}*`,
             },
         },
     ];
+    const emergencyLabelName = core.getInput("emergency_label_name");
+    if (prLabels.includes(emergencyLabelName)) {
+        blocks.push({
+            type: "section",
+            text: {
+                type: "mrkdwn",
+                text: `*🚨 \`${emergencyLabelName}\` PR로 매우 긴급한 PR입니다! 지금 바로 리뷰에 참여해 주세요! 🚨*`,
+            },
+        });
+    }
+    blocks.push(...[
+        { type: "divider" },
+        {
+            type: "section",
+            text: {
+                type: "mrkdwn",
+                text: `*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}`,
+            },
+        },
+    ]);
     if (prLabels?.length) {
         blocks.push({
-            type: "context",
-            // @ts-ignore
-            elements: [{ type: "mrkdwn", text: `*labels:* ${prLabels}` }],
+            type: "actions",
+            elements: prLabels.map(({ name }) => ({
+                type: "button",
+                text: {
+                    type: "plain_text",
+                    text: name,
+                },
+                ...(name === emergencyLabelName ? { style: "danger" } : {}),
+            })),
         });
     }
     return blocks;

@@ -6,7 +6,6 @@ import { addCommentToPR, postMessage } from "../slack";
 import { Reviewers } from "../types";
 import { debug } from "../utils";
 import { getReviewerSlackId } from "./common/get-reviewer-slack-id";
-import { getOctokit } from "../github";
 import { SKIP_COMMENT_MARKER } from "../constants";
 
 const slackChannel: string = core.getInput("slack_channel");
@@ -44,10 +43,6 @@ export async function handlePROpen(
   );
 }
 
-interface BuildSlackBlockParams {
-  reviewers: Reviewers;
-  pullRequest: any;
-}
 function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
   // PR 변수 셋업
   const prAuthor = pullRequest.user.login;
@@ -72,23 +67,53 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
   const requestMessage = requestedReviewers
     ? `${requestedReviewers}님께 리뷰 요청을 보냈어요.`
     : "리뷰 요청을 보냈어요.";
-  const blocks = [
+  const blocks: any[] = [
     {
       type: "section",
       text: {
         type: "mrkdwn",
         text: `*📮 ${
           `<@${prAuthorSlackId}>` || prAuthor
-        }님이 ${requestMessage}*\n*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}\n`,
+        }님이 ${requestMessage}*`,
       },
     },
   ];
 
+  const emergencyLabelName = core.getInput("emergency_label_name");
+  if (prLabels.includes(emergencyLabelName)) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*🚨 \`${emergencyLabelName}\` PR로 매우 긴급한 PR입니다! 지금 바로 리뷰에 참여해 주세요! 🚨*`,
+      },
+    });
+  }
+
+  blocks.push(
+    ...[
+      { type: "divider" },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*${repo}:*\n<${prLink}|${prTitle}>\n${prDescription}`,
+        },
+      },
+    ]
+  );
+
   if (prLabels?.length) {
     blocks.push({
-      type: "context",
-      // @ts-ignore
-      elements: [{ type: "mrkdwn", text: `*labels:* ${prLabels}` }],
+      type: "actions",
+      elements: prLabels.map(({ name }: { name: string }) => ({
+        type: "button",
+        text: {
+          type: "plain_text",
+          text: name,
+        },
+        ...(name === emergencyLabelName ? { style: "danger" } : {}),
+      })),
     });
   }
 

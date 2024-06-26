@@ -1,5 +1,51 @@
 # github codereview action
 
+## How to use
+
+-
+
+```yml
+name: PR Slack Notification
+
+on:
+  pull_request:
+    types: [opened, review_requested, closed]
+  issue_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Notify Slack
+        uses: roseline124/codereview-action@v1.0.0
+        with:
+          github_token: ${{ secrets.CODEREVIEWBOT_GITHUB_TOKEN }}
+          slack_token: ${{ secrets.SLACK_TOKEN }}
+          slack_channel: slack channel id
+          slack_workspace: slack workspace name
+        env:
+          ACTIONS_STEP_DEBUG: true
+```
+
+## reviewers.yml format
+
+```
+reviewers:
+  - githubName: roseline124
+    slackId: U07712R6TGS
+    name: hyunjisong
+  - githubName: c
+    slackId: d
+    name: leemonglyong
+  - githubName: e
+    slackId: f
+    name: hongkildong
+```
+
 ## test action
 
 1. test action
@@ -17,17 +63,8 @@
 - comment 이벤트: `act pull_request --eventpath event-comment.json`
 - merge 이벤트: `act pull_request --eventpath event-merged.json`
 
-## reviewers.yml format
+## deploy
 
-```
-reviewers:
-  - githubName: roseline124
-    slackId: U07712R6TGS
-    name: hyunjisong
-  - githubName: c
-    slackId: d
-    name: leemonglyong
-  - githubName: e
-    slackId: f
-    name: hongkildong
-```
+- `pnpm build`
+- commit
+- release

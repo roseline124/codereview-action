@@ -22,6 +22,10 @@ inputs:
     description: "Emoji to attach to slack pr message"
     required: false
     default: "white_check_mark"
+  emergency_label_name:
+    description: "emergency label name. if this label exists, emergency message will be showed in slack"
+    required: false
+    default: "emergency"
 runs:
   using: "node20"
   main: "dist/index.js"
