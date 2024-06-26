@@ -10,4 +10,7 @@
 
 3. event 지정
 
-- `act pull_request --eventpath event.json`
+- pr open 이벤트: `act pull_request --eventpath event-open.json`
+- pr review request 이벤트: `act pull_request --eventpath event-review-request.json`
+- comment 이벤트: `act pull_request --eventpath event-comment.json`
+- merge 이벤트: `act pull_request --eventpath event-merged.json`

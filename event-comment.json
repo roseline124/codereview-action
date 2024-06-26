@@ -1,0 +1,29 @@
+{
+  "action": "created",
+  "comment": {
+    "id": 1,
+    "user": {
+      "login": "roseline124"
+    },
+    "body": "test",
+    "html_url": "https://github.com/roseline124/codereview-action/pull/1#issuecomment-2190742541"
+  },
+  "issue": {
+    "number": 1,
+    "pull_request": {
+      "number": 1,
+      "url": "https://github.com/roseline124/codereview-action/pull/1"
+    }
+  },
+  "repository": {
+    "id": 1,
+    "name": "repo",
+    "full_name": "test/repo",
+    "owner": {
+      "login": "test"
+    }
+  },
+  "sender": {
+    "login": "reviewer1"
+  }
+}

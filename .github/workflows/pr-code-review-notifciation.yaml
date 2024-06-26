@@ -33,7 +33,7 @@ jobs:
         run: pnpm notify-slack
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          REVIEWERS: ${{ env.reviewers }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL:
+          SLACK_WORKSPACE:
           REVIEWERS_FILE: ${{ env.REVIEWERS_FILE }}
-          ACTIONS_STEP_DEBUG: true
