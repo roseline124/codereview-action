@@ -18,7 +18,14 @@ const reviewersFilePath = process.env.REVIEWERS_FILE as string;
 
 async function notifySlack() {
   try {
-    debug({ githubToken, slackToken, slackChannel, reviewersFilePath });
+    core.info(
+      JSON.stringify({
+        githubToken,
+        slackToken,
+        slackChannel,
+        reviewersFilePath,
+      })
+    );
     core.info("Starting notifySlack function");
 
     const reviewersYaml = await fs.readFile(reviewersFilePath, "utf8");
