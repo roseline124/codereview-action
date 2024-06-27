@@ -51,7 +51,6 @@ export async function handleReviewSubmitted(
     await postThreadMessage(ts, message);
   }
 
-  if (!review.body) return;
   let lastMessage: string = "";
   const commentAuthor = reviewers.reviewers.find(
     (rev) => rev.githubName === review.user.login
@@ -68,10 +67,12 @@ export async function handleReviewSubmitted(
       ":pray: 재수정 부탁드려요!\n" + review.body
     );
   } else {
-    lastMessage = generateComment(
-      commentAuthor?.name ?? review.user.login,
-      review.body
-    );
+    if (review.body) {
+      lastMessage = generateComment(
+        commentAuthor?.name ?? review.user.login,
+        review.body
+      );
+    }
   }
 
   await postThreadMessage(ts, lastMessage);

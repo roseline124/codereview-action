@@ -40967,8 +40967,6 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
         core.debug(message);
         await (0, slack_1.postThreadMessage)(ts, message);
     }
-    if (!review.body)
-        return;
     let lastMessage = "";
     const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user.login);
     if (review.state === "approved") {
@@ -40978,7 +40976,9 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
         lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, ":pray: 재수정 부탁드려요!\n" + review.body);
     }
     else {
-        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, review.body);
+        if (review.body) {
+            lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, review.body);
+        }
     }
     await (0, slack_1.postThreadMessage)(ts, lastMessage);
 }
