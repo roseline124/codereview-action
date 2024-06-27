@@ -42,9 +42,15 @@ export async function handleRequestReview(
     const existingReviewers = existingReviewersMatch[0]
       .replace(/님이|님께/g, "")
       .trim();
+
+    const filteredNewReviewers = newReviewers
+      .split(", ")
+      .filter((rev) => !existingReviewers.includes(rev))
+      .join(", ");
+
     textBlock.text.text = textBlock.text.text.replace(
       existingReviewersMatch[0],
-      `님이 ${existingReviewers}, ${newReviewers}님께`
+      `님이 ${existingReviewers}, ${filteredNewReviewers}님께`
     );
   }
 

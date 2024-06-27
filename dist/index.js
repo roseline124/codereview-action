@@ -40845,7 +40845,11 @@ async function handleRequestReview(octokit, event, reviewers) {
         const existingReviewers = existingReviewersMatch[0]
             .replace(/님이|님께/g, "")
             .trim();
-        textBlock.text.text = textBlock.text.text.replace(existingReviewersMatch[0], `님이 ${existingReviewers}, ${newReviewers}님께`);
+        const filteredNewReviewers = newReviewers
+            .split(", ")
+            .filter((rev) => !existingReviewers.includes(rev))
+            .join(", ");
+        textBlock.text.text = textBlock.text.text.replace(existingReviewersMatch[0], `님이 ${existingReviewers}, ${filteredNewReviewers}님께`);
     }
     (0, utils_1.debug)({ slackTs, textBlock });
     const textBlockIndex = blocks.findIndex((block) => block.type === "section" && block.text?.type === "mrkdwn");
