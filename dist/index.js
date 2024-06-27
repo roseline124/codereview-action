@@ -40845,13 +40845,14 @@ async function handleRequestReview(octokit, event, reviewers) {
         const existingReviewers = existingReviewersMatch[0]
             .replace(/님이|님께/g, "")
             .trim();
-        const filteredNewReviewers = newReviewers
-            .split(", ")
-            .filter((rev) => !existingReviewers.includes(rev))
+        const filteredNewReviewers = newReviewers // <@sdfsdf>, <@sdfjskdhfkjhk>
+            .split(", ") // ['<@sdfsdf>', '<@sdfjskdhfkjhk>']
+            .filter((rev) => !existingReviewers.includes(rev)) // ['<@sdfsdf>']
             .join(", ");
         textBlock.text.text = textBlock.text.text
             .replace(existingReviewersMatch[0], `님이 ${existingReviewers}, ${filteredNewReviewers}님께`)
-            .replace(/(,,|,\s,)/g, ",");
+            .replace(/(,,|,\s,)/g, ",")
+            .replace(", 님께", "님께");
     }
     (0, utils_1.debug)({ slackTs, textBlock });
     const textBlockIndex = blocks.findIndex((block) => block.type === "section" && block.text?.type === "mrkdwn");

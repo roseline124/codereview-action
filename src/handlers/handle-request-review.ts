@@ -43,9 +43,9 @@ export async function handleRequestReview(
       .replace(/님이|님께/g, "")
       .trim();
 
-    const filteredNewReviewers = newReviewers
-      .split(", ")
-      .filter((rev) => !existingReviewers.includes(rev))
+    const filteredNewReviewers = newReviewers // <@sdfsdf>, <@sdfjskdhfkjhk>
+      .split(", ") // ['<@sdfsdf>', '<@sdfjskdhfkjhk>']
+      .filter((rev) => !existingReviewers.includes(rev)) // ['<@sdfsdf>']
       .join(", ");
 
     textBlock.text.text = textBlock.text.text
@@ -53,7 +53,8 @@ export async function handleRequestReview(
         existingReviewersMatch[0],
         `님이 ${existingReviewers}, ${filteredNewReviewers}님께`
       )
-      .replace(/(,,|,\s,)/g, ",");
+      .replace(/(,,|,\s,)/g, ",")
+      .replace(", 님께", "님께");
   }
 
   debug({ slackTs, textBlock });
