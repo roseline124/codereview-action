@@ -48,10 +48,12 @@ export async function handleRequestReview(
       .filter((rev) => !existingReviewers.includes(rev))
       .join(", ");
 
-    textBlock.text.text = textBlock.text.text.replace(
-      existingReviewersMatch[0],
-      `님이 ${existingReviewers}, ${filteredNewReviewers}님께`
-    );
+    textBlock.text.text = textBlock.text.text
+      .replace(
+        existingReviewersMatch[0],
+        `님이 ${existingReviewers}, ${filteredNewReviewers}님께`
+      )
+      .replace(/(,,|,\s,)/g, ",");
   }
 
   debug({ slackTs, textBlock });
