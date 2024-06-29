@@ -40646,7 +40646,7 @@ const github = __importStar(__nccwpck_require__(5942));
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
-async function handlePRMerge(octokit, event) {
+async function handlePRMerge(octokit, event, isMerged) {
     const { pull_request } = event;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
@@ -40657,7 +40657,9 @@ async function handlePRMerge(octokit, event) {
     (0, utils_1.debug)({ ts });
     if (!ts)
         return;
-    const slackMergeEmojiName = core.getInput("slack_merge_emoji_name");
+    const slackMergeEmojiName = isMerged
+        ? core.getInput("slack_merge_emoji_name")
+        : core.getInput("slack_close_emoji_name");
     await (0, slack_1.addReaction)(ts, slackMergeEmojiName);
 }
 
@@ -41074,9 +41076,11 @@ async function notifySlack() {
         if (action === "submitted" && review) {
             return await (0, handle_review_submitted_1.handleReviewSubmitted)(octokit, event, reviewers);
         }
-        if (action === "closed" && pull_request?.merged_at) {
-            core.info("Event merged");
-            return await (0, handle_pr_merge_1.handlePRMerge)(octokit, event);
+        if (action === "closed") {
+            const isMerged = !!pull_request?.merged_at;
+            if (isMerged)
+                core.info("Event merged");
+            await (0, handle_pr_merge_1.handlePRMerge)(octokit, event, isMerged);
         }
     }
     catch (error) {
