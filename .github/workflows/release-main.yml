@@ -13,20 +13,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+
       - name: Bump version and create tag
         id: bump_version
         run: |
-          # Extract the current version from VERSION.txt
-          VERSION=$(cat VERSION.txt)
+          # Extract the current version from package.json
+          VERSION=$(jq -r '.version' package.json)
           # Increment the version number
           IFS='.' read -r -a parts <<< "$VERSION"
           ((parts[2]++))
           NEW_VERSION="${parts[0]}.${parts[1]}.${parts[2]}"
+          # Update package.json with the new version
+          jq --arg new_version "$NEW_VERSION" '.version=$new_version' package.json > tmp.json && mv tmp.json package.json
           echo $NEW_VERSION > VERSION.txt
           echo "New version: $NEW_VERSION"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git commit -am "Bump version to $NEW_VERSION"
+          git add package.json
+          git commit -m "Bump version to $NEW_VERSION"
           git tag "v$NEW_VERSION"
           git push origin main --tags
           echo "::set-output name=new_version::$NEW_VERSION"
@@ -44,4 +52,4 @@ jobs:
           tag_name: ${{ steps.bump_version.outputs.new_version }}
           body_path: ./CHANGELOG.md
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}

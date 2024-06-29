@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
       - main
+      - develop
 
 jobs:
   release:
@@ -13,22 +14,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Get branch name
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+
+      - name: Get branch name and short SHA
         id: vars
         run: |
           BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
-          echo "::set-output name=branch_name::$BRANCH_NAME"
           SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "::set-output name=branch_name::$BRANCH_NAME"
           echo "::set-output name=short_sha::$SHORT_SHA"
 
-      - name: Get current version
+      - name: Get current version from package.json
+        id: get_version
         run: |
-          VERSION=$(cat VERSION.txt)
+          VERSION=$(jq -r '.version' package.json)
           echo "::set-output name=version::$VERSION"
 
       - name: Create tag
         run: |
-          TAG_NAME="${{ steps.vars.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}"
+          TAG_NAME="v${{ steps.get_version.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}"
           git tag $TAG_NAME
           git push origin $TAG_NAME
 
@@ -42,16 +49,16 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.vars.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}
+          tag_name: ${{ steps.get_version.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}
           body_path: ./CHANGELOG.md
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
 
       - name: Add comment to PR
-        uses: peter-evans/commit-comment@v1
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          commit-sha: ${{ github.sha }}
-          body: |
-            A new release has been created: ${{ steps.vars.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          header: "A new release has been created"
+          message: |
+            Release Tag: `${{ steps.get_version.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}`
+            You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }})
