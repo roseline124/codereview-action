@@ -116,5 +116,7 @@ function parseTextToBlocks(text: string): any[] {
     });
   }
 
+  core.info(JSON.stringify(blocks));
+
   return blocks;
 }
