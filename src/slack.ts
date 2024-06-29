@@ -38,9 +38,18 @@ export async function updateMessage(ts: string, blocks: any) {
 }
 
 export async function postThreadMessage(ts: string, text: string) {
+  if (!text.includes("![image](")) {
+    return await slackClient.chat.postMessage({
+      channel: slackChannel,
+      text,
+      thread_ts: ts,
+    });
+  }
+
+  // support image
   await slackClient.chat.postMessage({
     channel: slackChannel,
-    text: text,
+    blocks: parseTextToBlocks(text),
     thread_ts: ts,
   });
 }
@@ -66,4 +75,46 @@ export async function addCommentToPR(
     issue_number: prNumber,
     body: comment,
   });
+}
+
+function parseTextToBlocks(text: string): any[] {
+  const imgTagRegex = /!\[image\]\(([^)]+)\)/g;
+  let match;
+  const blocks: any[] = [];
+  let lastIndex = 0;
+
+  while ((match = imgTagRegex.exec(text)) !== null) {
+    // Add text block before the image
+    if (match.index > lastIndex) {
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: text.substring(lastIndex, match.index).trim(),
+        },
+      });
+    }
+
+    // Add image block
+    blocks.push({
+      type: "image",
+      image_url: match[1],
+      alt_text: "image",
+    });
+
+    lastIndex = imgTagRegex.lastIndex;
+  }
+
+  // Add remaining text block
+  if (lastIndex < text.length) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: text.substring(lastIndex).trim(),
+      },
+    });
+  }
+
+  return blocks;
 }
