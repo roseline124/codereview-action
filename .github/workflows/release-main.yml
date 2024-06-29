@@ -1,0 +1,47 @@
+name: Release Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Bump version and create tag
+        id: bump_version
+        run: |
+          # Extract the current version from VERSION.txt
+          VERSION=$(cat VERSION.txt)
+          # Increment the version number
+          IFS='.' read -r -a parts <<< "$VERSION"
+          ((parts[2]++))
+          NEW_VERSION="${parts[0]}.${parts[1]}.${parts[2]}"
+          echo $NEW_VERSION > VERSION.txt
+          echo "New version: $NEW_VERSION"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git commit -am "Bump version to $NEW_VERSION"
+          git tag "v$NEW_VERSION"
+          git push origin main --tags
+          echo "::set-output name=new_version::$NEW_VERSION"
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          echo "CHANGELOG" > CHANGELOG.md
+          git log --pretty=format:"* %s (%h)" > CHANGELOG.md
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.bump_version.outputs.new_version }}
+          body_path: ./CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

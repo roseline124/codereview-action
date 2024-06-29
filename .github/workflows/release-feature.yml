@@ -1,0 +1,57 @@
+name: Release Feature
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get branch name
+        id: vars
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
+          echo "::set-output name=branch_name::$BRANCH_NAME"
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "::set-output name=short_sha::$SHORT_SHA"
+
+      - name: Get current version
+        run: |
+          VERSION=$(cat VERSION.txt)
+          echo "::set-output name=version::$VERSION"
+
+      - name: Create tag
+        run: |
+          TAG_NAME="${{ steps.vars.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          echo "CHANGELOG" > CHANGELOG.md
+          git log --pretty=format:"* %s (%h)" > CHANGELOG.md
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.vars.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}
+          body_path: ./CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add comment to PR
+        uses: peter-evans/commit-comment@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          commit-sha: ${{ github.sha }}
+          body: |
+            A new release has been created: ${{ steps.vars.outputs.version }}-alpha-${{ steps.vars.outputs.short_sha }}
