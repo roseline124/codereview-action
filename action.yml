@@ -19,9 +19,13 @@ inputs:
     required: false
     default: "reviewers.yml"
   slack_merge_emoji_name:
-    description: "Emoji to attach to slack pr message"
+    description: "Merge emoji to attach to slack pr message"
     required: false
     default: "white_check_mark"
+  slack_close_emoji_name:
+    description: "Close emoji to attach to slack pr message"
+    required: false
+    default: "x"
   emergency_label_name:
     description: "emergency label name. if this label exists, emergency message will be showed in slack"
     required: false

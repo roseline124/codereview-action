@@ -4,7 +4,11 @@ import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
 import { addReaction } from "../slack";
 import { debug } from "../utils";
 
-export async function handlePRMerge(octokit: any, event: any) {
+export async function handlePRMerge(
+  octokit: any,
+  event: any,
+  isMerged: boolean
+) {
   const { pull_request } = event;
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
@@ -17,7 +21,8 @@ export async function handlePRMerge(octokit: any, event: any) {
   debug({ ts });
   if (!ts) return;
 
-  const slackMergeEmojiName: string = core.getInput("slack_merge_emoji_name");
-
+  const slackMergeEmojiName = isMerged
+    ? core.getInput("slack_merge_emoji_name")
+    : core.getInput("slack_close_emoji_name");
   await addReaction(ts, slackMergeEmojiName);
 }

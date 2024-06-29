@@ -40425,7 +40425,7 @@ async function getOctokit() {
 
 /***/ }),
 
-/***/ 4820:
+/***/ 4400:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -40459,15 +40459,42 @@ const core = __importStar(__nccwpck_require__(9093));
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const generate_comment_1 = __nccwpck_require__(2228);
 const slack_1 = __nccwpck_require__(6134);
+const parse_comment_body_1 = __nccwpck_require__(3555);
 async function addComment({ octokit, owner, prNumber, repo, reviewers, comment, }) {
     const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
     if (!ts)
         return;
-    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
-    const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user.login, comment.body);
+    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login)
+        ?.name ?? comment.user.login;
+    const { text } = (0, parse_comment_body_1.parseCommentBody)(comment.body);
+    const message = (0, generate_comment_1.generateComment)(commentAuthor, text);
     core.info("Message constructed:");
     core.debug(message);
     await (0, slack_1.postThreadMessage)(ts, message);
+}
+
+
+/***/ }),
+
+/***/ 3555:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseCommentBody = parseCommentBody;
+function parseCommentBody(commentBody) {
+    const imgTagRegex = /<img[^>]+src="([^">]+)"[^>]*>/g;
+    let match;
+    let text = commentBody;
+    const imageUrls = [];
+    while ((match = imgTagRegex.exec(commentBody)) !== null) {
+        const imgTag = match[0];
+        const src = match[1];
+        imageUrls.push(src);
+        text = text.replace(imgTag, `![image](${src})`);
+    }
+    return { text: text.trim(), imageUrls };
 }
 
 
@@ -40597,7 +40624,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleCreateComment = handleCreateComment;
 const github = __importStar(__nccwpck_require__(5942));
 const constants_1 = __nccwpck_require__(8926);
-const add_comment_1 = __nccwpck_require__(4820);
+const add_comment_1 = __nccwpck_require__(4400);
 async function handleCreateComment(octokit, event, reviewers) {
     const { comment, issue } = event;
     const prNumber = issue.number;
@@ -40646,7 +40673,7 @@ const github = __importStar(__nccwpck_require__(5942));
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
-async function handlePRMerge(octokit, event) {
+async function handlePRMerge(octokit, event, isMerged) {
     const { pull_request } = event;
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
@@ -40657,7 +40684,9 @@ async function handlePRMerge(octokit, event) {
     (0, utils_1.debug)({ ts });
     if (!ts)
         return;
-    const slackMergeEmojiName = core.getInput("slack_merge_emoji_name");
+    const slackMergeEmojiName = isMerged
+        ? core.getInput("slack_merge_emoji_name")
+        : core.getInput("slack_close_emoji_name");
     await (0, slack_1.addReaction)(ts, slackMergeEmojiName);
 }
 
@@ -40894,7 +40923,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleReviewCommentCreated = handleReviewCommentCreated;
 const core = __importStar(__nccwpck_require__(9093));
-const add_comment_1 = __nccwpck_require__(4820);
+const add_comment_1 = __nccwpck_require__(4400);
 async function handleReviewCommentCreated(octokit, event, reviewers) {
     const { comment, pull_request } = event;
     const prNumber = pull_request.number;
@@ -41074,9 +41103,11 @@ async function notifySlack() {
         if (action === "submitted" && review) {
             return await (0, handle_review_submitted_1.handleReviewSubmitted)(octokit, event, reviewers);
         }
-        if (action === "closed" && pull_request?.merged_at) {
-            core.info("Event merged");
-            return await (0, handle_pr_merge_1.handlePRMerge)(octokit, event);
+        if (action === "closed") {
+            const isMerged = !!pull_request?.merged_at;
+            if (isMerged)
+                core.info("Event merged");
+            await (0, handle_pr_merge_1.handlePRMerge)(octokit, event, isMerged);
         }
     }
     catch (error) {
@@ -41162,9 +41193,17 @@ async function updateMessage(ts, blocks) {
     });
 }
 async function postThreadMessage(ts, text) {
+    if (!text.includes("![image](")) {
+        return await exports.slackClient.chat.postMessage({
+            channel: slackChannel,
+            text,
+            thread_ts: ts,
+        });
+    }
+    // support image
     await exports.slackClient.chat.postMessage({
         channel: slackChannel,
-        text: text,
+        blocks: parseTextToBlocks(text),
         thread_ts: ts,
     });
 }
@@ -41182,6 +41221,43 @@ async function addCommentToPR(octokit, prNumber, owner, repo, comment) {
         issue_number: prNumber,
         body: comment,
     });
+}
+function parseTextToBlocks(text) {
+    const imgTagRegex = /!\[image\]\(([^)]+)\)/g;
+    let match;
+    const blocks = [];
+    let lastIndex = 0;
+    while ((match = imgTagRegex.exec(text)) !== null) {
+        // Add text block before the image
+        if (match.index > lastIndex) {
+            blocks.push({
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: text.substring(lastIndex, match.index).trim(),
+                },
+            });
+        }
+        // Add image block
+        blocks.push({
+            type: "image",
+            image_url: match[1],
+            alt_text: "image",
+        });
+        lastIndex = imgTagRegex.lastIndex;
+    }
+    // Add remaining text block
+    if (lastIndex < text.length) {
+        blocks.push({
+            type: "section",
+            text: {
+                type: "mrkdwn",
+                text: text.substring(lastIndex).trim(),
+            },
+        });
+    }
+    core.info(JSON.stringify(blocks));
+    return blocks;
 }
 
 

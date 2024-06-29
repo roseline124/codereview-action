@@ -56,9 +56,10 @@ async function notifySlack() {
       return await handleReviewSubmitted(octokit, event, reviewers);
     }
 
-    if (action === "closed" && pull_request?.merged_at) {
-      core.info("Event merged");
-      return await handlePRMerge(octokit, event);
+    if (action === "closed") {
+      const isMerged = !!pull_request?.merged_at;
+      if (isMerged) core.info("Event merged");
+      await handlePRMerge(octokit, event, isMerged);
     }
   } catch (error: any) {
     core.error("Error in notifySlack function:");
