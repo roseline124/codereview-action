@@ -1,10 +1,6 @@
 import * as github from "@actions/github";
-import * as core from "@actions/core";
-import { postThreadMessage } from "../slack";
-import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
-import { Reviewers } from "../types";
-import { generateComment } from "./common/generate-comment";
 import { SKIP_COMMENT_MARKER } from "../constants";
+import { Reviewers } from "../types";
 import { addComment } from "./common/add-comment";
 
 export async function handleCreateComment(

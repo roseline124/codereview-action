@@ -40425,7 +40425,7 @@ async function getOctokit() {
 
 /***/ }),
 
-/***/ 4820:
+/***/ 4400:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -40459,15 +40459,42 @@ const core = __importStar(__nccwpck_require__(9093));
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const generate_comment_1 = __nccwpck_require__(2228);
 const slack_1 = __nccwpck_require__(6134);
+const parse_comment_body_1 = __nccwpck_require__(3555);
 async function addComment({ octokit, owner, prNumber, repo, reviewers, comment, }) {
     const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
     if (!ts)
         return;
-    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
-    const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user.login, comment.body);
+    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login)
+        ?.name ?? comment.user.login;
+    const { text } = (0, parse_comment_body_1.parseCommentBody)(comment.body);
+    const message = (0, generate_comment_1.generateComment)(commentAuthor, text);
     core.info("Message constructed:");
     core.debug(message);
     await (0, slack_1.postThreadMessage)(ts, message);
+}
+
+
+/***/ }),
+
+/***/ 3555:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseCommentBody = parseCommentBody;
+function parseCommentBody(commentBody) {
+    const imgTagRegex = /<img[^>]+src="([^">]+)"[^>]*>/g;
+    let match;
+    let text = commentBody;
+    const imageUrls = [];
+    while ((match = imgTagRegex.exec(commentBody)) !== null) {
+        const imgTag = match[0];
+        const src = match[1];
+        imageUrls.push(src);
+        text = text.replace(imgTag, `<${src}|image>`);
+    }
+    return { text: text.trim(), imageUrls };
 }
 
 
@@ -40597,7 +40624,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleCreateComment = handleCreateComment;
 const github = __importStar(__nccwpck_require__(5942));
 const constants_1 = __nccwpck_require__(8926);
-const add_comment_1 = __nccwpck_require__(4820);
+const add_comment_1 = __nccwpck_require__(4400);
 async function handleCreateComment(octokit, event, reviewers) {
     const { comment, issue } = event;
     const prNumber = issue.number;
@@ -40896,7 +40923,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleReviewCommentCreated = handleReviewCommentCreated;
 const core = __importStar(__nccwpck_require__(9093));
-const add_comment_1 = __nccwpck_require__(4820);
+const add_comment_1 = __nccwpck_require__(4400);
 async function handleReviewCommentCreated(octokit, event, reviewers) {
     const { comment, pull_request } = event;
     const prNumber = pull_request.number;
