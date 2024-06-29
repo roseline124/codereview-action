@@ -40492,7 +40492,7 @@ function parseCommentBody(commentBody) {
         const imgTag = match[0];
         const src = match[1];
         imageUrls.push(src);
-        text = text.replace(imgTag, `<${src}|image>`);
+        text = text.replace(imgTag, `![image](${src})`);
     }
     return { text: text.trim(), imageUrls };
 }
@@ -41193,9 +41193,17 @@ async function updateMessage(ts, blocks) {
     });
 }
 async function postThreadMessage(ts, text) {
+    if (!text.includes("![image](")) {
+        return await exports.slackClient.chat.postMessage({
+            channel: slackChannel,
+            text,
+            thread_ts: ts,
+        });
+    }
+    // support image
     await exports.slackClient.chat.postMessage({
         channel: slackChannel,
-        text: text,
+        blocks: parseTextToBlocks(text),
         thread_ts: ts,
     });
 }
@@ -41213,6 +41221,43 @@ async function addCommentToPR(octokit, prNumber, owner, repo, comment) {
         issue_number: prNumber,
         body: comment,
     });
+}
+function parseTextToBlocks(text) {
+    const imgTagRegex = /!\[image\]\(([^)]+)\)/g;
+    let match;
+    const blocks = [];
+    let lastIndex = 0;
+    while ((match = imgTagRegex.exec(text)) !== null) {
+        // Add text block before the image
+        if (match.index > lastIndex) {
+            blocks.push({
+                type: "section",
+                text: {
+                    type: "mrkdwn",
+                    text: text.substring(lastIndex, match.index).trim(),
+                },
+            });
+        }
+        // Add image block
+        blocks.push({
+            type: "image",
+            image_url: match[1],
+            alt_text: "image",
+        });
+        lastIndex = imgTagRegex.lastIndex;
+    }
+    // Add remaining text block
+    if (lastIndex < text.length) {
+        blocks.push({
+            type: "section",
+            text: {
+                type: "mrkdwn",
+                text: text.substring(lastIndex).trim(),
+            },
+        });
+    }
+    core.info(JSON.stringify(blocks));
+    return blocks;
 }
 
 
