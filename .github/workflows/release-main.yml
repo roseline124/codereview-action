@@ -30,17 +30,13 @@ jobs:
           # Update package.json with the new version
           jq --arg new_version "$NEW_VERSION" '.version=$new_version' package.json > tmp.json && mv tmp.json package.json
           echo "New version: $NEW_VERSION"
-          git config user.name "roseline124"
-          git config user.email "guseod24@gmail.com"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add package.json
           git commit -m "Bump version to $NEW_VERSION"
           git tag "v$NEW_VERSION"
-          # Configure git to use the token
-          git remote set-url origin https://roseline124:${{ secrets.RELEASE_GITHUB_TOKEN }}@github.com/roseline124/codereview-action.git
           git push origin main --tags
           echo "::set-output name=new_version::$NEW_VERSION"
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
 
       - name: Generate Changelog
         id: changelog
