@@ -13,7 +13,7 @@ export function parseCommentBody(commentBody: string): ParsedComment {
     const imgTag = match[0];
     const src = match[1];
     imageUrls.push(src);
-    text = text.replace(imgTag, `<${src}|image>`);
+    text = text.replace(imgTag, `![image](${src})`);
   }
 
   return { text: text.trim(), imageUrls };
