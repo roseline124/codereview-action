@@ -38,6 +38,8 @@ jobs:
           git tag "v$NEW_VERSION"
           git push origin main --tags
           echo "::set-output name=new_version::$NEW_VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
 
       - name: Generate Changelog
         id: changelog
