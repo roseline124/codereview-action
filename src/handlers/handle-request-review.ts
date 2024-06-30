@@ -34,10 +34,10 @@ export async function handleRequestReview(
   const prAuthorSlackId = reviewers.reviewers.find(
     (rev) => rev.githubName === pull_request.user.login
   )?.slackId;
-  textBlock.text.text = i18n.t("request_review_to", {
+  textBlock.text.text = `*📮 ${i18n.t("request_review_to", {
     requester: `<@${prAuthorSlackId}>` || pull_request.user.login,
     reviewers: newReviewers,
-  });
+  })}*`;
 
   debug({ textBlock });
   const textBlockIndex = blocks.findIndex(
