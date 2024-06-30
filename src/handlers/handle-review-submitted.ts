@@ -59,12 +59,12 @@ export async function handleReviewSubmitted(
   if (review.state === "approved") {
     lastMessage = generateComment(
       commentAuthor?.name ?? review.user.login,
-      ":white_check_mark: LGTM\n" + review.body
+      ":white_check_mark: LGTM\n" + (review.body ?? "")
     );
   } else if (review.state === "changes_requested") {
     lastMessage = generateComment(
       commentAuthor?.name ?? review.user.login,
-      ":pray: 재수정 부탁드려요!\n" + review.body
+      ":pray: 재수정 부탁드려요!\n" + (review.body ?? "")
     );
   } else {
     if (review.body) {
