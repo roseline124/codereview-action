@@ -2,6 +2,8 @@
 
 Integrate PR review activities into Slack with GitHub actions without a webhook server. All you need to do is add a github action workflow.
 
+english is default.
+
 ![Preview Image](images/preview.png)
 
 ## korean document
@@ -67,7 +69,6 @@ jobs:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel: <SLACK_CHANNEL_ID>
           slack_workspace: <SLACK_WORKSPACE_NAME>
-          language: ko
 ```
 
 3. create a `reviewers.yml` file in the root of your project. Please make sure to follow this format.
@@ -111,7 +112,6 @@ jobs:
           slack_channel: <SLACK_CHANNEL_ID>
           slack_workspace: <SLACK_WORKSPACE_NAME>
           reviewers_file: <CUSTOM_FILE_PATH>
-          language: ko
 ```
 
 4. about inputs

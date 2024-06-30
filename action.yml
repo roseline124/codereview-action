@@ -38,3 +38,7 @@ inputs:
 runs:
   using: "node20"
   main: "dist/index.js"
+
+branding:
+  color: "blue"
+  icon: "message-square"

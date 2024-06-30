@@ -62,6 +62,7 @@ jobs:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel: <SLACK_CHANNEL_ID>
           slack_workspace: <SLACK_WORKSPACE_NAME>
+          language: ko
 ```
 
 3. 프로젝트 루트 레벨에 `reviewers.yml` 파일을 만들어주세요. 아래 포맷을 꼭 지켜주세요.
@@ -105,6 +106,7 @@ jobs:
           slack_channel: <SLACK_CHANNEL_ID>
           slack_workspace: <SLACK_WORKSPACE_NAME>
           reviewers_file: <CUSTOM_FILE_PATH>
+          language: ko
 ```
 
 4. input 관련 설명
@@ -119,6 +121,7 @@ jobs:
 | slack_merge_emoji_name | PR 머지 시에 슬랙 메시지에 이모지가 붙습니다.                                                                       | false    | white_check_mark |
 | slack_close_emoji_name | PR 클로즈 시에 슬랙 메시지에 이모지가 붙습니다.                                                                     | false    | x                |
 | emergency_label_name   | PR 오픈 시에 이 라벨이 있으면 긴급 메시지가 붙습니다.                                                               | false    | emergency        |
+| language               | 언어 설정 (ex. `en`, `ko`)want                                                                                      | false    | en               |
 
 ## test action
 
