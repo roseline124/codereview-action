@@ -43269,10 +43269,10 @@ async function handleRequestReview(octokit, event, reviewers) {
     if (!textBlock?.text?.text)
         return;
     const prAuthorSlackId = reviewers.reviewers.find((rev) => rev.githubName === pull_request.user.login)?.slackId;
-    textBlock.text.text = i18next_1.default.t("request_review_to", {
+    textBlock.text.text = `*📮 ${i18next_1.default.t("request_review_to", {
         requester: `<@${prAuthorSlackId}>` || pull_request.user.login,
         reviewers: newReviewers,
-    });
+    })}*`;
     (0, utils_1.debug)({ textBlock });
     const textBlockIndex = blocks.findIndex((block) => block.type === "section" && block.text?.type === "mrkdwn");
     blocks[textBlockIndex] = textBlock;
