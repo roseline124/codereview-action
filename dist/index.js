@@ -43119,11 +43119,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handlePROpen = handlePROpen;
 const core = __importStar(__nccwpck_require__(9093));
 const github = __importStar(__nccwpck_require__(5942));
+const i18next_1 = __importDefault(__nccwpck_require__(5699));
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
 const get_reviewer_slack_id_1 = __nccwpck_require__(5226);
 const constants_1 = __nccwpck_require__(8926);
-const i18n_1 = __importDefault(__nccwpck_require__(9170));
 const slackChannel = core.getInput("slack_channel");
 const slackWorkspace = core.getInput("slack_workspace");
 async function handlePROpen(octokit, event, reviewers) {
@@ -43138,7 +43138,7 @@ async function handlePROpen(octokit, event, reviewers) {
     const ts = await (0, slack_1.postMessage)(blocks);
     (0, utils_1.debug)({ ts, owner, repo, prNumber });
     // save the slack message ts as PR comment
-    const prOpenComment = i18n_1.default.t("pr_open_comment");
+    const prOpenComment = i18next_1.default.t("pr_open_comment");
     const slackMessageComment = `${prOpenComment}(https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(".", "")})\n<!-- (ts${ts}) ${constants_1.SKIP_COMMENT_MARKER} -->`;
     await (0, slack_1.addCommentToPR)(octokit.rest, prNumber, owner, repo, slackMessageComment);
 }
@@ -43153,15 +43153,16 @@ function buildSlackBlock(reviewers, pullRequest) {
     const repo = github.context.repo.repo;
     const prLabels = pullRequest.labels
         ?.map((label) => label.name)
-        .join(", ");
+        ?.join(", ");
     const prAuthorSlackId = reviewers.reviewers.find((rev) => rev.githubName === prAuthor)?.slackId;
     const requestedReviewers = (0, get_reviewer_slack_id_1.getReviewerSlackId)({ pull_request: pullRequest }, reviewers);
     const requester = `<@${prAuthorSlackId}>` || prAuthor;
-    const requestReview = i18n_1.default.t("request_review", { requester });
-    const requestReviewTo = i18n_1.default.t("request_review_to", {
+    const requestReview = i18next_1.default.t("request_review", { requester });
+    const requestReviewTo = i18next_1.default.t("request_review_to", {
         requester,
         reviewers: requestedReviewers,
     });
+    (0, utils_1.debug)({ requestReviewTo, requestReview });
     const blocks = [
         {
             type: "section",
@@ -43172,8 +43173,8 @@ function buildSlackBlock(reviewers, pullRequest) {
         },
     ];
     const emergencyLabelName = core.getInput("emergency_label_name");
-    if (prLabels.includes(emergencyLabelName)) {
-        const emergentMessage = i18n_1.default.t("emergency");
+    if (prLabels?.includes(emergencyLabelName)) {
+        const emergentMessage = i18next_1.default.t("emergency");
         blocks.push({
             type: "section",
             text: {
@@ -43192,10 +43193,10 @@ function buildSlackBlock(reviewers, pullRequest) {
             },
         },
     ]);
-    if (prLabels?.length) {
+    if (pullRequest?.labels?.length) {
         blocks.push({
             type: "actions",
-            elements: prLabels.map(({ name }) => ({
+            elements: pullRequest.labels.map(({ name }) => ({
                 type: "button",
                 text: {
                     type: "plain_text",
@@ -43205,6 +43206,7 @@ function buildSlackBlock(reviewers, pullRequest) {
             })),
         });
     }
+    (0, utils_1.debug)({ blocks });
     return blocks;
 }
 
@@ -43239,9 +43241,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleRequestReview = handleRequestReview;
 const github = __importStar(__nccwpck_require__(5942));
+const i18next_1 = __importDefault(__nccwpck_require__(5699));
 const slack_1 = __nccwpck_require__(6134);
 const utils_1 = __nccwpck_require__(442);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
@@ -43262,28 +43268,12 @@ async function handleRequestReview(octokit, event, reviewers) {
     const textBlock = blocks.find((block) => block.type === "section" && block.text?.type === "mrkdwn");
     if (!textBlock?.text?.text)
         return;
-    const existingReviewersMatch = textBlock.text.text.match(/님이.+님께/);
-    // 처음에 리뷰어 지정 안한 경우
-    if (!existingReviewersMatch) {
-        const existingMessage = textBlock.text.text.match(/님이\s리뷰\s요청을/);
-        if (!existingMessage)
-            return;
-        textBlock.text.text = textBlock.text.text.replace(existingMessage[0], `님이 ${newReviewers}님께 리뷰 요청을`);
-    }
-    else {
-        const existingReviewers = existingReviewersMatch[0]
-            .replace(/님이|님께/g, "")
-            .trim();
-        const filteredNewReviewers = newReviewers // <@sdfsdf>, <@sdfjskdhfkjhk>
-            .split(", ") // ['<@sdfsdf>', '<@sdfjskdhfkjhk>']
-            .filter((rev) => !existingReviewers.includes(rev)) // ['<@sdfsdf>']
-            .join(", ");
-        textBlock.text.text = textBlock.text.text
-            .replace(existingReviewersMatch[0], `님이 ${existingReviewers}, ${filteredNewReviewers}님께`)
-            .replace(/(,,|,\s,)/g, ",")
-            .replace(", 님께", "님께");
-    }
-    (0, utils_1.debug)({ slackTs, textBlock });
+    const prAuthorSlackId = reviewers.reviewers.find((rev) => rev.githubName === pull_request.user.login)?.slackId;
+    textBlock.text.text = i18next_1.default.t("request_review_to", {
+        requester: `<@${prAuthorSlackId}>` || pull_request.user.login,
+        reviewers: newReviewers,
+    });
+    (0, utils_1.debug)({ textBlock });
     const textBlockIndex = blocks.findIndex((block) => block.type === "section" && block.text?.type === "mrkdwn");
     blocks[textBlockIndex] = textBlock;
     await (0, slack_1.updateMessage)(slackTs, blocks);
@@ -43366,11 +43356,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleReviewSubmitted = handleReviewSubmitted;
 exports.listReviewComments = listReviewComments;
 const core = __importStar(__nccwpck_require__(9093));
 const github = __importStar(__nccwpck_require__(5942));
+const i18next_1 = __importDefault(__nccwpck_require__(5699));
 const slack_1 = __nccwpck_require__(6134);
 const find_slack_ts_in_comments_1 = __nccwpck_require__(4945);
 const generate_comment_1 = __nccwpck_require__(2228);
@@ -43387,7 +43381,11 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
     const submittedReviewComments = reviewComments.filter((comment) => comment.pull_request_review_id === review.id);
     (0, utils_1.debug)({ reviewComments });
     core.info(`submittedReviewComments.length: ${submittedReviewComments.length}`);
-    // 코멘트를 하나로 합쳐서 보낼 수 있지만 슬랙 메시지에 글자 수 제한이 없어서 하나씩 나눠 보냄.
+    /**
+     * I could combine the comments into one,
+     * but Slack messages don't have a character limit.
+     * So I send them one by one
+     */
     for (const comment of submittedReviewComments) {
         if (!comment.body)
             continue;
@@ -43403,7 +43401,8 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
         lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, ":white_check_mark: LGTM\n" + (review.body ?? ""));
     }
     else if (review.state === "changes_requested") {
-        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, ":pray: 재수정 부탁드려요!\n" + (review.body ?? ""));
+        const requestChangeMessage = i18next_1.default.t("request_changes");
+        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, `:pray: ${requestChangeMessage}\n` + (review.body ?? ""));
     }
     else {
         if (review.body) {
@@ -43459,20 +43458,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.initI18n = void 0;
 const core = __importStar(__nccwpck_require__(9093));
 const i18next_1 = __importDefault(__nccwpck_require__(5699));
 const i18next_fs_backend_1 = __importDefault(__nccwpck_require__(6055));
-__nccwpck_require__(6013); // bring the types
+const path_1 = __importDefault(__nccwpck_require__(1017));
+__nccwpck_require__(451); // bring the types
 const language = core.getInput("language");
-i18next_1.default.use(i18next_fs_backend_1.default).init({
-    fallbackLng: "en",
-    lng: language, // default: 'en'
-    backend: {
-        loadPath: __dirname + "/locales/{{lng}}.json",
-    },
-    debug: true,
-});
-exports["default"] = i18next_1.default;
+const initI18n = async () => {
+    await i18next_1.default.use(i18next_fs_backend_1.default).init({
+        fallbackLng: "en",
+        lng: language, // default: 'en'
+        backend: {
+            loadPath: path_1.default.join(__dirname, "locales", "{{lng}}.json"),
+        },
+        interpolation: {
+            escapeValue: false, // disalbe HTML encoding
+        },
+        debug: true,
+    });
+};
+exports.initI18n = initI18n;
+
+
+/***/ }),
+
+/***/ 451:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
@@ -43521,9 +43537,11 @@ const utils_1 = __nccwpck_require__(442);
 const handle_review_submitted_1 = __nccwpck_require__(7489);
 const github_1 = __nccwpck_require__(8469);
 const handle_review_comment_created_1 = __nccwpck_require__(5997);
+const i18n_1 = __nccwpck_require__(9170);
 const reviewersFilePath = core.getInput("reviewers_file");
 async function notifySlack() {
     try {
+        await (0, i18n_1.initI18n)();
         const octokit = await (0, github_1.getOctokit)();
         core.info("Starting notifySlack function");
         const reviewersYaml = await fs_1.promises.readFile(reviewersFilePath, "utf8");
@@ -43750,14 +43768,6 @@ const debug = (json) => {
     core.debug(JSON.stringify(json, null, 2));
 };
 exports.debug = debug;
-
-
-/***/ }),
-
-/***/ 6013:
-/***/ ((module) => {
-
-module.exports = eval("require")("./i18n-types");
 
 
 /***/ }),

@@ -34,6 +34,8 @@ Integrate PR review activities into Slack with GitHub actions without a webhook 
 - close: x emoji (customizable).
 - merge: white_check_mark emoji (customizable)
 
+7. set language you want: it supports `english`, `korean` now
+
 ## How to use
 
 1. you need to create slack bot and add the bot to the channel.
@@ -65,8 +67,7 @@ jobs:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel: <SLACK_CHANNEL_ID>
           slack_workspace: <SLACK_WORKSPACE_NAME>
-        env:
-          ACTIONS_STEP_DEBUG: true
+          language: ko
 ```
 
 3. create a `reviewers.yml` file in the root of your project. Please make sure to follow this format.
@@ -110,6 +111,7 @@ jobs:
           slack_channel: <SLACK_CHANNEL_ID>
           slack_workspace: <SLACK_WORKSPACE_NAME>
           reviewers_file: <CUSTOM_FILE_PATH>
+          language: ko
 ```
 
 4. about inputs
@@ -124,6 +126,7 @@ jobs:
 | slack_merge_emoji_name | merge emoji to attach to slack pr message                                             | false    | white_check_mark |
 | slack_close_emoji_name | close emoji to attach to slack pr message                                             | false    | x                |
 | emergency_label_name   | emergency label name. if this label exists, emergency message will be showed in slack | false    | emergency        |
+| language               | set language you (ex. `en`, `ko`)want                                                 | false    | en               |
 
 ## test action
 

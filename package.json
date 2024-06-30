@@ -6,7 +6,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
+    "build": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt && cp -r src/i18n/locales dist/locales",
     "notify-slack": "node dist/index.js"
   },
   "keywords": [],

@@ -1,4 +1,6 @@
 import * as github from "@actions/github";
+import i18n from "i18next";
+
 import { getSlackMessage, updateMessage } from "../slack";
 import { Reviewers } from "../types";
 import { debug } from "../utils";
@@ -28,36 +30,16 @@ export async function handleRequestReview(
   );
 
   if (!textBlock?.text?.text) return;
-  const existingReviewersMatch = textBlock.text.text.match(/님이.+님께/);
 
-  // 처음에 리뷰어 지정 안한 경우
-  if (!existingReviewersMatch) {
-    const existingMessage = textBlock.text.text.match(/님이\s리뷰\s요청을/);
-    if (!existingMessage) return;
-    textBlock.text.text = textBlock.text.text.replace(
-      existingMessage[0],
-      `님이 ${newReviewers}님께 리뷰 요청을`
-    );
-  } else {
-    const existingReviewers = existingReviewersMatch[0]
-      .replace(/님이|님께/g, "")
-      .trim();
+  const prAuthorSlackId = reviewers.reviewers.find(
+    (rev) => rev.githubName === pull_request.user.login
+  )?.slackId;
+  textBlock.text.text = i18n.t("request_review_to", {
+    requester: `<@${prAuthorSlackId}>` || pull_request.user.login,
+    reviewers: newReviewers,
+  });
 
-    const filteredNewReviewers = newReviewers // <@sdfsdf>, <@sdfjskdhfkjhk>
-      .split(", ") // ['<@sdfsdf>', '<@sdfjskdhfkjhk>']
-      .filter((rev) => !existingReviewers.includes(rev)) // ['<@sdfsdf>']
-      .join(", ");
-
-    textBlock.text.text = textBlock.text.text
-      .replace(
-        existingReviewersMatch[0],
-        `님이 ${existingReviewers}, ${filteredNewReviewers}님께`
-      )
-      .replace(/(,,|,\s,)/g, ",")
-      .replace(", 님께", "님께");
-  }
-
-  debug({ slackTs, textBlock });
+  debug({ textBlock });
   const textBlockIndex = blocks.findIndex(
     (block: any) => block.type === "section" && block.text?.type === "mrkdwn"
   );

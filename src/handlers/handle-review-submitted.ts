@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import i18n from "i18next";
 import { Reviewers } from "../types";
 import { postThreadMessage } from "../slack";
 import { findSlackTsInComments } from "./common/find-slack-ts-in-comments";
@@ -35,7 +36,11 @@ export async function handleReviewSubmitted(
     `submittedReviewComments.length: ${submittedReviewComments.length}`
   );
 
-  // 코멘트를 하나로 합쳐서 보낼 수 있지만 슬랙 메시지에 글자 수 제한이 없어서 하나씩 나눠 보냄.
+  /**
+   * I could combine the comments into one,
+   * but Slack messages don't have a character limit.
+   * So I send them one by one
+   */
   for (const comment of submittedReviewComments) {
     if (!comment.body) continue;
     const commentAuthor = reviewers.reviewers.find(
@@ -62,9 +67,10 @@ export async function handleReviewSubmitted(
       ":white_check_mark: LGTM\n" + (review.body ?? "")
     );
   } else if (review.state === "changes_requested") {
+    const requestChangeMessage = i18n.t("request_changes");
     lastMessage = generateComment(
       commentAuthor?.name ?? review.user.login,
-      ":pray: 재수정 부탁드려요!\n" + (review.body ?? "")
+      `:pray: ${requestChangeMessage}\n` + (review.body ?? "")
     );
   } else {
     if (review.body) {

@@ -30,6 +30,11 @@ inputs:
     description: "emergency label name. if this label exists, emergency message will be showed in slack"
     required: false
     default: "emergency"
+  language:
+    description: "set language you want"
+    required: false
+    default: "en"
+
 runs:
   using: "node20"
   main: "dist/index.js"

@@ -39,3 +39,4 @@ jobs:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel:
           slack_workspace:
+          language: ko

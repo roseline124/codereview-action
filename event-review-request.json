@@ -3,7 +3,7 @@
   "pull_request": {
     "number": 1,
     "user": { "login": "roseline124" },
-    "requested_reviewers": [{ "login": "test" }],
+    "requested_reviewers": [{ "login": "test" }, { "login": "test2" }],
     "html_url": "https://github.com/roseline124/codereview-action/pull/1"
   },
   "repository": {

@@ -12,11 +12,13 @@ import { debug } from "./utils";
 import { handleReviewSubmitted } from "./handlers/handle-review-submitted";
 import { getOctokit } from "./github";
 import { handleReviewCommentCreated } from "./handlers/handle-review-comment-created";
+import { initI18n } from "./i18n";
 
 const reviewersFilePath: string = core.getInput("reviewers_file");
 
 async function notifySlack() {
   try {
+    await initI18n();
     const octokit = await getOctokit();
     core.info("Starting notifySlack function");
 

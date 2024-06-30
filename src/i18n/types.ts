@@ -1,4 +1,4 @@
-import en from "../locales/en.json";
+import en from "./locales/en.json";
 
 export type DefaultLocale = typeof en;
 
