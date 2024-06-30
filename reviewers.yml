@@ -1,0 +1,10 @@
+reviewers:
+  - githubName: roseline124
+    slackId: U07712R6TGS
+    name: hyunjisong
+  - githubName: test
+    slackId: U07712R6TGA
+    name: test
+  - githubName: test2
+    slackId: U07712R6TGB
+    name: test2

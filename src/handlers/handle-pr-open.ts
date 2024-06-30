@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import i18n from "i18next";
 
 import { WebhookPayload } from "@actions/github/lib/interfaces.js";
 import { addCommentToPR, postMessage } from "../slack";
@@ -23,14 +24,15 @@ export async function handlePROpen(
   const repo = github.context.repo.repo;
   const prNumber = pull_request.number;
 
-  // slack message 전송
+  // send slack message
   const blocks = buildSlackBlock(reviewers, pull_request);
   const ts = await postMessage(blocks);
 
   debug({ ts, owner, repo, prNumber });
 
-  // PR에 슬랙 메시지 ts 저장
-  const slackMessageComment = `코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기](https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(
+  // save the slack message ts as PR comment
+  const prOpenComment = i18n.t("pr_open_comment");
+  const slackMessageComment = `${prOpenComment}(https://${slackWorkspace}.slack.com/archives/${slackChannel}/p${ts?.replace(
     ".",
     ""
   )})\n<!-- (ts${ts}) ${SKIP_COMMENT_MARKER} -->`;
@@ -44,7 +46,7 @@ export async function handlePROpen(
 }
 
 function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
-  // PR 변수 셋업
+  // set PR variables
   const prAuthor = pullRequest.user.login;
   const prTitle = pullRequest.title;
   const prDescription = pullRequest.body
@@ -52,9 +54,9 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
     : "";
   const prLink = pullRequest.html_url;
   const repo = github.context.repo.repo;
-  const prLabels = pullRequest.labels
+  const prLabels: string | undefined = pullRequest.labels
     ?.map((label: { name: string }) => label.name)
-    .join(", ");
+    ?.join(", ");
 
   const prAuthorSlackId = reviewers.reviewers.find(
     (rev) => rev.githubName === prAuthor
@@ -64,28 +66,31 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
     reviewers
   );
 
-  const requestMessage = requestedReviewers
-    ? `${requestedReviewers}님께 리뷰 요청을 보냈어요.`
-    : "리뷰 요청을 보냈어요.";
+  const requester = `<@${prAuthorSlackId}>` || prAuthor;
+  const requestReview = i18n.t("request_review", { requester });
+  const requestReviewTo = i18n.t("request_review_to", {
+    requester,
+    reviewers: requestedReviewers,
+  });
+  debug({ requestReviewTo, requestReview });
   const blocks: any[] = [
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `*📮 ${
-          `<@${prAuthorSlackId}>` || prAuthor
-        }님이 ${requestMessage}*`,
+        text: `*📮 ${requestedReviewers ? requestReviewTo : requestReview}*`,
       },
     },
   ];
 
   const emergencyLabelName = core.getInput("emergency_label_name");
-  if (prLabels.includes(emergencyLabelName)) {
+  if (prLabels?.includes(emergencyLabelName)) {
+    const emergentMessage = i18n.t("emergency");
     blocks.push({
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `*🚨 \`${emergencyLabelName}\` PR로 매우 긴급한 PR입니다! 지금 바로 리뷰에 참여해 주세요! 🚨*`,
+        text: `*🚨 \`${emergencyLabelName}\` ${emergentMessage}*`,
       },
     });
   }
@@ -103,10 +108,10 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
     ]
   );
 
-  if (prLabels?.length) {
+  if (pullRequest?.labels?.length) {
     blocks.push({
       type: "actions",
-      elements: prLabels.map(({ name }: { name: string }) => ({
+      elements: pullRequest.labels.map(({ name }: { name: string }) => ({
         type: "button",
         text: {
           type: "plain_text",
@@ -116,6 +121,8 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
       })),
     });
   }
+
+  debug({ blocks });
 
   return blocks;
 }

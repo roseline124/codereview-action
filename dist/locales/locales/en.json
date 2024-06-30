@@ -1,0 +1,7 @@
+{
+  "pr_open_comment": "Your code review request was sent to Slack message: [slack message here]",
+  "request_review": "{{requester}} sent a review request",
+  "request_review_to": "{{requester}} sent a review request to {{reviewers}}",
+  "emergency": "This is a very urgent PR, please review it now 🚨",
+  "request_changes": "request changes!"
+}

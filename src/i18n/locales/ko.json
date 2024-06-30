@@ -1,0 +1,7 @@
+{
+  "pr_open_comment": "코드리뷰 요청이 슬랙메시지로 전달되었어요: [슬랙 메시지 바로가기]",
+  "request_review": "{{requester}}님이 리뷰 요청을 보냈어요.",
+  "request_review_to": "{{requester}}님이 {{reviewers}}님께 리뷰 요청을 보냈어요.",
+  "emergency": "매우 긴급한 PR입니다! 지금 바로 리뷰에 참여해 주세요! 🚨",
+  "request_changes": "재수정 부탁드려요!"
+}

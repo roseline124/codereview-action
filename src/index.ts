@@ -12,11 +12,13 @@ import { debug } from "./utils";
 import { handleReviewSubmitted } from "./handlers/handle-review-submitted";
 import { getOctokit } from "./github";
 import { handleReviewCommentCreated } from "./handlers/handle-review-comment-created";
+import { initI18n } from "./i18n";
 
 const reviewersFilePath: string = core.getInput("reviewers_file");
 
 async function notifySlack() {
   try {
+    await initI18n();
     const octokit = await getOctokit();
     core.info("Starting notifySlack function");
 
@@ -29,21 +31,22 @@ async function notifySlack() {
     debug(event);
     const { action, pull_request, comment, review } = event;
 
-    // PR 오픈 시 메시지 생성
+    // create slack message when pr opened
     if (action === "opened" && pull_request) {
       return await handlePROpen(octokit, event, reviewers);
     }
 
-    // 리뷰어 추가 시 기존 메시지의 리뷰어 업데이트
+    // update existing slack message when reviewers added
     if (action === "review_requested" && pull_request) {
       return await handleRequestReview(octokit, event, reviewers);
     }
 
-    // 코멘트 생성 시 스레드에 달기
+    // comment on slack thread when github comment created
     if (action === "created" && comment) {
       return await handleCreateComment(octokit, event, reviewers);
     }
 
+    // handle pull request review comment
     if (
       action === "created" &&
       github.context.eventName === "pull_request_review_comment"
@@ -51,11 +54,12 @@ async function notifySlack() {
       return await handleReviewCommentCreated(octokit, event, reviewers);
     }
 
-    // 리뷰를 통해 코멘트 제출하는 경우데도 스레드에 메시지 달기
+    // comment on slack thread when github review created
     if (action === "submitted" && review) {
       return await handleReviewSubmitted(octokit, event, reviewers);
     }
 
+    // add emojis to slack message when pr closed or merged
     if (action === "closed") {
       const isMerged = !!pull_request?.merged_at;
       if (isMerged) core.info("Event merged");
