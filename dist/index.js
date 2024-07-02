@@ -43409,6 +43409,10 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
             lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, review.body);
         }
     }
+    const assignee = reviewers.reviewers.find((rev) => rev.githubName === pull_request.assignee.login);
+    if (assignee) {
+        lastMessage += `\n<@${assignee.slackId}>`;
+    }
     await (0, slack_1.postThreadMessage)(ts, lastMessage);
 }
 async function listReviewComments(octokit, owner, repo, prNumber) {

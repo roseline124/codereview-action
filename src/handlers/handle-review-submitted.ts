@@ -81,6 +81,13 @@ export async function handleReviewSubmitted(
     }
   }
 
+  const assignee = reviewers.reviewers.find(
+    (rev) => rev.githubName === pull_request.assignee.login
+  );
+  if (assignee) {
+    lastMessage += `\n<@${assignee.slackId}>`;
+  }
+
   await postThreadMessage(ts, lastMessage);
 }
 
