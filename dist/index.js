@@ -43657,6 +43657,7 @@ async function postMessage(blocks) {
     const res = await exports.slackClient.chat.postMessage({
         channel: slackChannel,
         blocks,
+        text: "pr open message",
     });
     return res.ts;
 }
@@ -43680,6 +43681,7 @@ async function postThreadMessage(ts, text) {
         channel: slackChannel,
         blocks: parseTextToBlocks(text),
         thread_ts: ts,
+        text: "post thread message",
     });
 }
 async function addReaction(ts, emoji) {
