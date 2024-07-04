@@ -43389,29 +43389,28 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
     for (const comment of submittedReviewComments) {
         if (!comment.body)
             continue;
-        const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
-        const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user.login, comment.body);
+        const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user?.login);
+        const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user?.login ?? "bot", comment.body);
         core.info("Message constructed:");
         core.debug(message);
         await (0, slack_1.postThreadMessage)(ts, message);
     }
     let lastMessage = "";
-    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user.login);
+    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user?.login);
+    const commentAuthorName = commentAuthor?.name ?? review.user?.login ?? "bot";
+    const assignee = reviewers.reviewers.find((rev) => rev.githubName === pull_request.assignee?.login);
+    const assigneeMention = assignee ? `\n<@${assignee.slackId}>` : "";
     if (review.state === "approved") {
-        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, ":white_check_mark: LGTM\n" + (review.body ?? ""));
+        lastMessage = (0, generate_comment_1.generateComment)(commentAuthorName, ":white_check_mark: LGTM\n" + (review.body ?? "") + assigneeMention);
     }
     else if (review.state === "changes_requested") {
         const requestChangeMessage = i18next_1.default.t("request_changes");
-        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, `:pray: ${requestChangeMessage}\n` + (review.body ?? ""));
+        lastMessage = (0, generate_comment_1.generateComment)(commentAuthorName, `:pray: ${requestChangeMessage}\n` + (review.body ?? "") + assigneeMention);
     }
     else {
         if (review.body) {
-            lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, review.body);
+            lastMessage = (0, generate_comment_1.generateComment)(commentAuthorName, review.body + assigneeMention);
         }
-    }
-    const assignee = reviewers.reviewers.find((rev) => rev.githubName === pull_request.assignee.login);
-    if (assignee) {
-        lastMessage += `\n<@${assignee.slackId}>`;
     }
     await (0, slack_1.postThreadMessage)(ts, lastMessage);
 }
