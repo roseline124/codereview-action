@@ -42855,8 +42855,10 @@ async function addComment({ octokit, owner, prNumber, repo, reviewers, comment, 
     const ts = await (0, find_slack_ts_in_comments_1.findSlackTsInComments)(octokit, prNumber, owner, repo);
     if (!ts)
         return;
-    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login)
-        ?.name ?? comment.user.login;
+    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user?.login)
+        ?.name ??
+        comment.user?.login ??
+        "reviewer";
     const { text } = (0, parse_comment_body_1.parseCommentBody)(comment.body);
     const message = (0, generate_comment_1.generateComment)(commentAuthor, text);
     core.info("Message constructed:");
@@ -43144,7 +43146,7 @@ async function handlePROpen(octokit, event, reviewers) {
 }
 function buildSlackBlock(reviewers, pullRequest) {
     // set PR variables
-    const prAuthor = pullRequest.user.login;
+    const prAuthor = pullRequest.user?.login;
     const prTitle = pullRequest.title;
     const prDescription = pullRequest.body
         ? `\`\`\`${pullRequest.body}\`\`\``
@@ -43156,7 +43158,9 @@ function buildSlackBlock(reviewers, pullRequest) {
         ?.join(", ");
     const prAuthorSlackId = reviewers.reviewers.find((rev) => rev.githubName === prAuthor)?.slackId;
     const requestedReviewers = (0, get_reviewer_slack_id_1.getReviewerSlackId)({ pull_request: pullRequest }, reviewers);
-    const requester = `<@${prAuthorSlackId}>` || prAuthor;
+    const requester = prAuthorSlackId
+        ? `<@${prAuthorSlackId}>`
+        : prAuthor ?? "assignee";
     const requestReview = i18next_1.default.t("request_review", { requester });
     const requestReviewTo = i18next_1.default.t("request_review_to", {
         requester,
@@ -43268,9 +43272,11 @@ async function handleRequestReview(octokit, event, reviewers) {
     const textBlock = blocks.find((block) => block.type === "section" && block.text?.type === "mrkdwn");
     if (!textBlock?.text?.text)
         return;
-    const prAuthorSlackId = reviewers.reviewers.find((rev) => rev.githubName === pull_request.user.login)?.slackId;
+    const prAuthorSlackId = reviewers.reviewers.find((rev) => rev.githubName === pull_request.user?.login)?.slackId;
     textBlock.text.text = `*📮 ${i18next_1.default.t("request_review_to", {
-        requester: `<@${prAuthorSlackId}>` || pull_request.user.login,
+        requester: prAuthorSlackId
+            ? `<@${prAuthorSlackId}>`
+            : pull_request.user?.login ?? "assignee",
         reviewers: newReviewers,
     })}*`;
     (0, utils_1.debug)({ textBlock });
@@ -43389,29 +43395,28 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
     for (const comment of submittedReviewComments) {
         if (!comment.body)
             continue;
-        const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user.login);
-        const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user.login, comment.body);
+        const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === comment.user?.login);
+        const message = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? comment.user?.login ?? "bot", comment.body);
         core.info("Message constructed:");
         core.debug(message);
         await (0, slack_1.postThreadMessage)(ts, message);
     }
     let lastMessage = "";
-    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user.login);
+    const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user?.login);
+    const commentAuthorName = commentAuthor?.name ?? review.user?.login ?? "bot";
+    const assignee = reviewers.reviewers.find((rev) => rev.githubName === pull_request.assignee?.login);
+    const assigneeMention = assignee ? `\n<@${assignee.slackId}>` : "";
     if (review.state === "approved") {
-        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, ":white_check_mark: LGTM\n" + (review.body ?? ""));
+        lastMessage = (0, generate_comment_1.generateComment)(commentAuthorName, ":white_check_mark: LGTM\n" + (review.body ?? "") + assigneeMention);
     }
     else if (review.state === "changes_requested") {
         const requestChangeMessage = i18next_1.default.t("request_changes");
-        lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, `:pray: ${requestChangeMessage}\n` + (review.body ?? ""));
+        lastMessage = (0, generate_comment_1.generateComment)(commentAuthorName, `:pray: ${requestChangeMessage}\n` + (review.body ?? "") + assigneeMention);
     }
     else {
         if (review.body) {
-            lastMessage = (0, generate_comment_1.generateComment)(commentAuthor?.name ?? review.user.login, review.body);
+            lastMessage = (0, generate_comment_1.generateComment)(commentAuthorName, review.body + assigneeMention);
         }
-    }
-    const assignee = reviewers.reviewers.find((rev) => rev.githubName === pull_request.assignee.login);
-    if (assignee) {
-        lastMessage += `\n<@${assignee.slackId}>`;
     }
     await (0, slack_1.postThreadMessage)(ts, lastMessage);
 }

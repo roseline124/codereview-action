@@ -47,7 +47,7 @@ export async function handlePROpen(
 
 function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
   // set PR variables
-  const prAuthor = pullRequest.user.login;
+  const prAuthor = pullRequest.user?.login;
   const prTitle = pullRequest.title;
   const prDescription = pullRequest.body
     ? `\`\`\`${pullRequest.body}\`\`\``
@@ -66,7 +66,9 @@ function buildSlackBlock(reviewers: Reviewers, pullRequest: any) {
     reviewers
   );
 
-  const requester = `<@${prAuthorSlackId}>` || prAuthor;
+  const requester = prAuthorSlackId
+    ? `<@${prAuthorSlackId}>`
+    : prAuthor ?? "assignee";
   const requestReview = i18n.t("request_review", { requester });
   const requestReviewTo = i18n.t("request_review_to", {
     requester,

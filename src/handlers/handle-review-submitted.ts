@@ -44,10 +44,10 @@ export async function handleReviewSubmitted(
   for (const comment of submittedReviewComments) {
     if (!comment.body) continue;
     const commentAuthor = reviewers.reviewers.find(
-      (rev) => rev.githubName === comment.user.login
+      (rev) => rev.githubName === comment.user?.login
     );
     const message = generateComment(
-      commentAuthor?.name ?? comment.user.login,
+      commentAuthor?.name ?? comment.user?.login ?? "bot",
       comment.body
     );
     core.info("Message constructed:");
@@ -58,34 +58,32 @@ export async function handleReviewSubmitted(
 
   let lastMessage: string = "";
   const commentAuthor = reviewers.reviewers.find(
-    (rev) => rev.githubName === review.user.login
+    (rev) => rev.githubName === review.user?.login
   );
 
+  const commentAuthorName = commentAuthor?.name ?? review.user?.login ?? "bot";
+  const assignee = reviewers.reviewers.find(
+    (rev) => rev.githubName === pull_request.assignee?.login
+  );
+  const assigneeMention = assignee ? `\n<@${assignee.slackId}>` : "";
   if (review.state === "approved") {
     lastMessage = generateComment(
-      commentAuthor?.name ?? review.user.login,
-      ":white_check_mark: LGTM\n" + (review.body ?? "")
+      commentAuthorName,
+      ":white_check_mark: LGTM\n" + (review.body ?? "") + assigneeMention
     );
   } else if (review.state === "changes_requested") {
     const requestChangeMessage = i18n.t("request_changes");
     lastMessage = generateComment(
-      commentAuthor?.name ?? review.user.login,
-      `:pray: ${requestChangeMessage}\n` + (review.body ?? "")
+      commentAuthorName,
+      `:pray: ${requestChangeMessage}\n` + (review.body ?? "") + assigneeMention
     );
   } else {
     if (review.body) {
       lastMessage = generateComment(
-        commentAuthor?.name ?? review.user.login,
-        review.body
+        commentAuthorName,
+        review.body + assigneeMention
       );
     }
-  }
-
-  const assignee = reviewers.reviewers.find(
-    (rev) => rev.githubName === pull_request.assignee.login
-  );
-  if (assignee) {
-    lastMessage += `\n<@${assignee.slackId}>`;
   }
 
   await postThreadMessage(ts, lastMessage);
