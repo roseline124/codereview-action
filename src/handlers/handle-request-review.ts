@@ -32,10 +32,12 @@ export async function handleRequestReview(
   if (!textBlock?.text?.text) return;
 
   const prAuthorSlackId = reviewers.reviewers.find(
-    (rev) => rev.githubName === pull_request.user.login
+    (rev) => rev.githubName === pull_request.user?.login
   )?.slackId;
   textBlock.text.text = `*📮 ${i18n.t("request_review_to", {
-    requester: `<@${prAuthorSlackId}>` || pull_request.user.login,
+    requester: prAuthorSlackId
+      ? `<@${prAuthorSlackId}>`
+      : pull_request.user?.login ?? "assignee",
     reviewers: newReviewers,
   })}*`;
 

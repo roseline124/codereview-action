@@ -26,8 +26,10 @@ export async function addComment({
   if (!ts) return;
 
   const commentAuthor =
-    reviewers.reviewers.find((rev) => rev.githubName === comment.user.login)
-      ?.name ?? comment.user.login;
+    reviewers.reviewers.find((rev) => rev.githubName === comment.user?.login)
+      ?.name ??
+    comment.user?.login ??
+    "reviewer";
 
   const { text } = parseCommentBody(comment.body);
   const message = generateComment(commentAuthor, text);
