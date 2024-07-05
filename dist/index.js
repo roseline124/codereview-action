@@ -43671,6 +43671,7 @@ async function updateMessage(ts, blocks) {
         channel: slackChannel,
         ts,
         blocks,
+        text: "update pr open message(request review)",
     });
 }
 async function postThreadMessage(ts, text) {

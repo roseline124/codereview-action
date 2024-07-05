@@ -35,6 +35,7 @@ export async function updateMessage(ts: string, blocks: any) {
     channel: slackChannel,
     ts,
     blocks,
+    text: "update pr open message(request review)",
   });
 }
 
