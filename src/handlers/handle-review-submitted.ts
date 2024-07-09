@@ -63,7 +63,7 @@ export async function handleReviewSubmitted(
 
   const commentAuthorName = commentAuthor?.name ?? review.user?.login ?? "bot";
   const assignee = reviewers.reviewers.find(
-    (rev) => rev.githubName === pull_request.assignee?.login
+    (rev) => rev.githubName === pull_request.user?.login
   );
   const assigneeMention = assignee ? `\n<@${assignee.slackId}>` : "";
   if (review.state === "approved") {

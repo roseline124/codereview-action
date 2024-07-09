@@ -43404,7 +43404,7 @@ async function handleReviewSubmitted(octokit, event, reviewers) {
     let lastMessage = "";
     const commentAuthor = reviewers.reviewers.find((rev) => rev.githubName === review.user?.login);
     const commentAuthorName = commentAuthor?.name ?? review.user?.login ?? "bot";
-    const assignee = reviewers.reviewers.find((rev) => rev.githubName === pull_request.assignee?.login);
+    const assignee = reviewers.reviewers.find((rev) => rev.githubName === pull_request.user?.login);
     const assigneeMention = assignee ? `\n<@${assignee.slackId}>` : "";
     if (review.state === "approved") {
         lastMessage = (0, generate_comment_1.generateComment)(commentAuthorName, ":white_check_mark: LGTM\n" + (review.body ?? "") + assigneeMention);
