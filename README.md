@@ -1,5 +1,7 @@
 # PR Codereview Slack Notification Action
 
+[![Hypercommit](https://img.shields.io/badge/Hypercommit-DB2475)](https://hypercommit.com/codereview-action)
+
 Integrate PR review activities into Slack with GitHub actions without a webhook server. All you need to do is add a github action workflow.
 
 english is default.
